@@ -4,29 +4,62 @@ import Navbar from './components/Navbar';
 import LoginModal from './components/LoginModal';
 import RosterPage from './pages/RosterPage';
 import WishlistPage from './pages/WishlistPage';
-import guildData from './data/guildData.json';
 import './index.css';
+
+const API_URL = '';
 
 function App() {
   const [showLogin, setShowLogin] = useState(false);
-  const [roster, setRoster] = useState(guildData.roster);
-  const [wishlist, setWishlist] = useState(guildData.wishlist);
+  const [loading, setLoading] = useState(true);
+  const [roster, setRoster] = useState([]);
+  const [wishlist, setWishlist] = useState([]);
 
+  // Load data from server
   useEffect(() => {
-    const handleBeforeUnload = () => {
-      const data = { roster, wishlist };
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'guildData.json';
-      a.click();
-      URL.revokeObjectURL(url);
-    };
+    fetch(`${API_URL}/api/data`)
+      .then(res => res.json())
+      .then(data => {
+        setRoster(data.roster || []);
+        setWishlist(data.wishlist || []);
+        setLoading(false);
+      })
+      .catch(() => {
+        setLoading(false);
+      });
+  }, []);
 
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [roster, wishlist]);
+  // Save data when roster or wishlist changes
+  const saveData = (newRoster, newWishlist) => {
+    fetch(`${API_URL}/api/data`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ roster: newRoster, wishlist: newWishlist })
+    }).catch(console.error);
+  };
+
+  const handleSetRoster = (newRoster) => {
+    setRoster(newRoster);
+    saveData(newRoster, wishlist);
+  };
+
+  const handleSetWishlist = (newWishlist) => {
+    setWishlist(newWishlist);
+    saveData(roster, newWishlist);
+  };
+
+  if (loading) {
+    return (
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        color: 'var(--primary)'
+      }}>
+        Loading...
+      </div>
+    );
+  }
 
   return (
     <BrowserRouter>
@@ -35,11 +68,11 @@ function App() {
         <Routes>
           <Route
             path="/"
-            element={<RosterPage roster={roster} setRoster={setRoster} />}
+            element={<RosterPage roster={roster} setRoster={handleSetRoster} />}
           />
           <Route
             path="/wishlist"
-            element={<WishlistPage wishlist={wishlist} setWishlist={setWishlist} />}
+            element={<WishlistPage wishlist={wishlist} setWishlist={handleSetWishlist} />}
           />
         </Routes>
       </main>

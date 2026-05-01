@@ -6,10 +6,11 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "lint": "eslint .",
-    "preview": "vite preview --host 0.0.0.0 --port 8080"
+    "start": "node server.js",
+    "lint": "eslint ."
   },
   "dependencies": {
+    "express": "^4.22.1",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "react-router-dom": "^7.14.2"
