@@ -1,15 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   DndContext,
+  DragOverlay,
   closestCenter,
   KeyboardSensor,
   PointerSensor,
   useSensor,
   useSensors,
-  DragOverlay
+  useDroppable
 } from '@dnd-kit/core';
 import {
-  arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
@@ -21,7 +21,7 @@ import MemberCard from './MemberCard';
 
 const GROUP_COUNT = 8;
 
-function SortableMember({ member, onEdit, onDelete, groupId, index }) {
+function SortableMember({ member, onEdit, onDelete }) {
   const {
     attributes,
     listeners,
@@ -30,8 +30,8 @@ function SortableMember({ member, onEdit, onDelete, groupId, index }) {
     transition,
     isDragging
   } = useSortable({
-    id: `${groupId}-${member.id}`,
-    data: { member, groupId }
+    id: member.id,
+    data: { member }
   });
 
   const style = {
@@ -47,28 +47,26 @@ function SortableMember({ member, onEdit, onDelete, groupId, index }) {
   );
 }
 
-function GroupColumn({ groupId, members, onEdit, onDelete, onAdd }) {
+function GroupDropZone({ groupId, members, onEdit, onDelete, onAdd, isOver }) {
   const officer = isOfficer();
 
   return (
-    <div className="raid-group">
+    <div className={`raid-group ${isOver ? 'drag-over' : ''}`}>
       <div className="group-header">
         <span className="group-name">Gruppe {groupId}</span>
         <span className="group-count">{members.length}/5</span>
       </div>
       <SortableContext
-        items={members.map(m => `${groupId}-${m.id}`)}
+        items={members.map(m => m.id)}
         strategy={verticalListSortingStrategy}
       >
         <div className="group-slots">
-          {members.map((member, index) => (
+          {members.map((member) => (
             <SortableMember
               key={member.id}
               member={member}
               onEdit={onEdit}
               onDelete={onDelete}
-              groupId={groupId}
-              index={index}
             />
           ))}
         </div>
@@ -84,22 +82,29 @@ function GroupColumn({ groupId, members, onEdit, onDelete, onAdd }) {
 
 export default function RaidGroups({ roster, setRoster, onEditMember, onDeleteMember, onAddMember }) {
   const [activeId, setActiveId] = useState(null);
-  const [groups, setGroups] = useState({});
 
-  // Initialize groups from roster
-  useEffect(() => {
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8
+      }
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates
+    })
+  );
+
+  const getGroupsFromRoster = useCallback(() => {
     const newGroups = {};
     for (let i = 1; i <= GROUP_COUNT; i++) {
       newGroups[i] = [];
     }
 
-    // Distribute roster members into groups
     roster.forEach(member => {
-      const groupNum = member.group || ((roster.indexOf(member) % GROUP_COUNT) + 1);
+      const groupNum = member.group || 1;
       if (newGroups[groupNum] && newGroups[groupNum].length < 5) {
         newGroups[groupNum].push(member);
       } else {
-        // Find first available group
         for (let g = 1; g <= GROUP_COUNT; g++) {
           if (newGroups[g].length < 5) {
             newGroups[g].push(member);
@@ -109,24 +114,10 @@ export default function RaidGroups({ roster, setRoster, onEditMember, onDeleteMe
       }
     });
 
-    setGroups(newGroups);
+    return newGroups;
   }, [roster]);
 
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates
-    })
-  );
-
-  const findGroup = (id) => {
-    for (const [groupId, members] of Object.entries(groups)) {
-      if (members.some(m => `${groupId}-${m.id}` === id)) {
-        return parseInt(groupId);
-      }
-    }
-    return null;
-  };
+  const groups = getGroupsFromRoster();
 
   const handleDragStart = (event) => {
     setActiveId(event.active.id);
@@ -138,45 +129,46 @@ export default function RaidGroups({ roster, setRoster, onEditMember, onDeleteMe
 
     if (!over) return;
 
-    const activeGroup = findGroup(active.id);
-    const overGroup = findGroup(over.id) || parseInt(over.id);
+    const memberId = active.id;
+    const targetGroup = over.id;
 
-    if (activeGroup === overGroup) return;
-
-    // Find the member being dragged
-    const member = groups[activeGroup]?.find(m => `${activeGroup}-${m.id}` === active.id);
-    if (!member) return;
-
-    // Remove from old group, add to new group
-    const newGroups = { ...groups };
-    newGroups[activeGroup] = newGroups[activeGroup].filter(m => m.id !== member.id);
-
-    // Update group assignment
-    const updatedMember = { ...member, group: overGroup };
-
-    if (newGroups[overGroup]) {
-      newGroups[overGroup].push(updatedMember);
+    // Check if target is a group (starts with "group-")
+    let newGroup;
+    if (targetGroup.toString().startsWith('group-')) {
+      newGroup = parseInt(targetGroup.replace('group-', ''));
+    } else {
+      // It's a member ID, find their group
+      const member = roster.find(m => m.id === targetGroup);
+      if (member) {
+        newGroup = member.group || 1;
+      } else {
+        return;
+      }
     }
 
-    setGroups(newGroups);
+    // Find current group of the dragged member
+    const currentMember = roster.find(m => m.id === memberId);
+    if (!currentMember) return;
+    const currentGroup = currentMember.group || 1;
 
-    // Update roster with new group assignments
+    if (currentGroup === newGroup) return;
+
+    // Check if target group has space
+    const targetGroupMembers = groups[newGroup] || [];
+    if (targetGroupMembers.length >= 5) return;
+
+    // Update the member's group
     const newRoster = roster.map(m => {
-      if (m.id === member.id) {
-        return { ...m, group: overGroup };
+      if (m.id === memberId) {
+        return { ...m, group: newGroup };
       }
       return m;
     });
+
     setRoster(newRoster);
   };
 
-  const activeMember = activeId ? (() => {
-    for (const members of Object.values(groups)) {
-      const found = members.find(m => `${Object.keys(groups).find(g => groups[g] === members)}-${m.id}` === activeId);
-      if (found) return found;
-    }
-    return null;
-  })() : null;
+  const activeMember = activeId ? roster.find(m => m.id === activeId) : null;
 
   return (
     <DndContext
@@ -186,11 +178,11 @@ export default function RaidGroups({ roster, setRoster, onEditMember, onDeleteMe
       onDragEnd={handleDragEnd}
     >
       <div className="raid-groups">
-        {Object.entries(groups).map(([groupId, members]) => (
-          <GroupColumn
+        {Array.from({ length: GROUP_COUNT }, (_, i) => i + 1).map(groupId => (
+          <GroupWithDroppable
             key={groupId}
-            groupId={parseInt(groupId)}
-            members={members}
+            groupId={groupId}
+            members={groups[groupId] || []}
             onEdit={onEditMember}
             onDelete={onDeleteMember}
             onAdd={onAddMember}
@@ -201,5 +193,24 @@ export default function RaidGroups({ roster, setRoster, onEditMember, onDeleteMe
         {activeMember ? <MemberCard member={activeMember} /> : null}
       </DragOverlay>
     </DndContext>
+  );
+}
+
+function GroupWithDroppable({ groupId, members, onEdit, onDelete, onAdd }) {
+  const { setNodeRef, isOver } = useDroppable({
+    id: `group-${groupId}`
+  });
+
+  return (
+    <div ref={setNodeRef} className={`raid-group-wrapper ${isOver ? 'drag-over' : ''}`}>
+      <GroupDropZone
+        groupId={groupId}
+        members={members}
+        onEdit={onEdit}
+        onDelete={onDelete}
+        onAdd={onAdd}
+        isOver={isOver}
+      />
+    </div>
   );
 }
