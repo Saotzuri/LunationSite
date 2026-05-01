@@ -119,7 +119,6 @@ export default function MemberForm({ member, onSave, onCancel, isWishlist = fals
               value={formData.name}
               onChange={handleChange}
               className="form-input"
-              required
               placeholder={isWishlist ? "e.g. 1x Shadow Priest" : "Character name"}
             />
           </div>

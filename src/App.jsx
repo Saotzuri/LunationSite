@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import LoginModal from './components/LoginModal';
@@ -13,18 +13,14 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [roster, setRoster] = useState([]);
   const [wishlist, setWishlist] = useState([]);
-  const [lastSaved, setLastSaved] = useState(null);
 
-  console.log('App rendered, roster:', roster.length, 'wishlist:', wishlist.length);
+  console.log('App state - roster:', roster?.length, 'wishlist:', wishlist?.length);
 
   // Load data from server
   useEffect(() => {
-    console.log('Fetching data from server...');
+    console.log('Fetching data...');
     fetch(`${API_URL}/api/data`)
-      .then(res => {
-        console.log('Response status:', res.status);
-        return res.json();
-      })
+      .then(res => res.json())
       .then(data => {
         console.log('Loaded data:', data);
         setRoster(data.roster || []);
@@ -37,9 +33,13 @@ function App() {
       });
   }, []);
 
-  // Save data when roster or wishlist changes
-  const saveData = async (newRoster, newWishlist) => {
-    console.log('Saving data...', { roster: newRoster.length, wishlist: newWishlist.length });
+  // Save data function
+  const saveData = useCallback(async (newRoster, newWishlist) => {
+    console.log('saveData called:', { roster: newRoster?.length, wishlist: newWishlist?.length });
+    if (!newRoster || !newWishlist) {
+      console.error('saveData: missing data', { newRoster, newWishlist });
+      return;
+    }
     try {
       const res = await fetch(`${API_URL}/api/data`, {
         method: 'PUT',
@@ -48,23 +48,55 @@ function App() {
       });
       const result = await res.json();
       console.log('Save result:', result);
-      setLastSaved(new Date().toISOString());
     } catch (err) {
       console.error('Save error:', err);
     }
-  };
+  }, []);
 
-  const handleSetRoster = (newRoster) => {
-    console.log('handleSetRoster called with', newRoster.length, 'members');
-    setRoster(newRoster);
-    saveData(newRoster, wishlist);
-  };
+  // Wrap setRoster to handle both direct values and updater functions
+  const handleSetRoster = useCallback((newRosterOrUpdater) => {
+    console.log('handleSetRoster called, type:', typeof newRosterOrUpdater);
 
-  const handleSetWishlist = (newWishlist) => {
-    console.log('handleSetWishlist called with', newWishlist.length, 'entries');
-    setWishlist(newWishlist);
-    saveData(roster, newWishlist);
-  };
+    if (typeof newRosterOrUpdater === 'function') {
+      // It's a state updater function, need to get current state
+      setRoster(prevRoster => {
+        const newRoster = newRosterOrUpdater(prevRoster);
+        console.log('Updater produced roster with', newRoster?.length, 'members');
+        // Don't save here - we'll save after the state is updated
+        return newRoster;
+      });
+    } else {
+      // It's a direct value
+      console.log('Direct roster update with', newRosterOrUpdater?.length, 'members');
+      setRoster(newRosterOrUpdater);
+      saveData(newRosterOrUpdater, wishlist);
+    }
+  }, [wishlist, saveData]);
+
+  // Similarly for wishlist
+  const handleSetWishlist = useCallback((newWishlistOrUpdater) => {
+    console.log('handleSetWishlist called, type:', typeof newWishlistOrUpdater);
+
+    if (typeof newWishlistOrUpdater === 'function') {
+      setWishlist(prevWishlist => {
+        const newWishlist = newWishlistOrUpdater(prevWishlist);
+        console.log('Updater produced wishlist with', newWishlist?.length, 'entries');
+        return newWishlist;
+      });
+    } else {
+      console.log('Direct wishlist update with', newWishlistOrUpdater?.length, 'entries');
+      setWishlist(newWishlistOrUpdater);
+      saveData(roster, newWishlistOrUpdater);
+    }
+  }, [roster, saveData]);
+
+  // Effect to save when roster or wishlist changes (after initial load)
+  useEffect(() => {
+    if (!loading) {
+      console.log('Auto-saving due to state change');
+      saveData(roster, wishlist);
+    }
+  }, [roster, wishlist, loading, saveData]);
 
   if (loading) {
     return (
@@ -97,7 +129,6 @@ function App() {
       </main>
       <footer className="footer">
         Lunation Guild © {new Date().getFullYear()}
-        {lastSaved && <span style={{ marginLeft: '1rem', opacity: 0.5 }}>Last saved: {lastSaved}</span>}
       </footer>
       {showLogin && <LoginModal onClose={() => setShowLogin(false)} />}
     </BrowserRouter>
