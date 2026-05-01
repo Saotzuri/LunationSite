@@ -1,4 +1,6 @@
 import { isOfficer } from '../utils/auth';
+import { getClassColor } from '../utils/classColors';
+import { getSpecIcon } from '../utils/classIcons';
 
 const roleLabels = {
   tank: 'Tank',
@@ -9,13 +11,25 @@ const roleLabels = {
 
 export default function MemberCard({ member, onEdit, onDelete }) {
   const officer = isOfficer();
+  const classColor = getClassColor(member.spec);
+  const specIcon = getSpecIcon(member.spec);
 
   return (
     <div className="member-card">
+      {classColor && (
+        <div className="class-color-bar" style={{ backgroundColor: classColor }} />
+      )}
       <span className={`member-role ${member.role}`}>
         {roleLabels[member.role]}
       </span>
-      <h3 className="member-name">{member.name}</h3>
+      <div className="member-header">
+        {specIcon && (
+          <img src={specIcon} alt="" className="spec-icon" />
+        )}
+        <h3 className="member-name" style={classColor ? { color: classColor } : {}}>
+          {member.name}
+        </h3>
+      </div>
       <p className="member-spec">{member.spec}</p>
       {member.notes && (
         <p className="member-notes" style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.5rem' }}>

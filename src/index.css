@@ -673,3 +673,40 @@ main {
   height: 100%;
   transition: all 0.2s;
 }
+
+/* Class color bar */
+.class-color-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  border-radius: 12px 12px 0 0;
+}
+
+.member-card {
+  position: relative;
+}
+
+.member-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.spec-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+/* Wishlist priority arrows */
+.wishlist-card {
+  position: relative;
+}
+
+.wishlist-priority-arrow {
+  margin-left: 0.5rem;
+  font-size: 0.7rem;
+}

@@ -7,6 +7,12 @@ const roleLabels = {
   ranged: 'Ranged DPS'
 };
 
+const priorityArrows = {
+  high: '↑',
+  medium: '─',
+  low: '↓'
+};
+
 export default function WishlistCard({ entry, onEdit, onDelete }) {
   const officer = isOfficer();
 
@@ -19,7 +25,7 @@ export default function WishlistCard({ entry, onEdit, onDelete }) {
         <div className="wishlist-name">{entry.name}</div>
       </div>
       <span className={`wishlist-priority ${entry.priority}`}>
-        {entry.priority}
+        {entry.priority} <span className="wishlist-priority-arrow">{priorityArrows[entry.priority]}</span>
       </span>
       {officer && (
         <div className="member-actions" style={{ opacity: 1, position: 'static', marginLeft: '1rem' }}>
