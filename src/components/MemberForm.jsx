@@ -16,6 +16,7 @@ const specs = [
   // Demon Hunter
   { value: 'Vengeance DH', label: 'Demon Hunter - Vengeance', role: 'tank' },
   { value: 'Havoc DH', label: 'Demon Hunter - Havoc', role: 'melee' },
+  { value: 'Devourer DH', label: 'Demon Hunter - Devourer', role: 'melee' },
   // Druid
   { value: 'Bear Druid', label: 'Druid - Guardian (Bear)', role: 'tank' },
   { value: 'Resto Druid', label: 'Druid - Restoration', role: 'healer' },

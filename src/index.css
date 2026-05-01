@@ -688,19 +688,6 @@ main {
   position: relative;
 }
 
-.member-header {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.spec-icon {
-  width: 28px;
-  height: 28px;
-  border-radius: 4px;
-  object-fit: cover;
-}
-
 /* Wishlist priority arrows */
 .wishlist-card {
   position: relative;

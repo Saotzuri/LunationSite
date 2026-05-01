@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import {
   DndContext,
   DragOverlay,
@@ -47,7 +47,7 @@ function SortableMember({ member, onEdit, onDelete }) {
   );
 }
 
-function GroupDropZone({ groupId, members, onEdit, onDelete, onAdd, isOver }) {
+function GroupColumn({ groupId, members, onEdit, onDelete, onAdd, isOver }) {
   const officer = isOfficer();
 
   return (
@@ -119,6 +119,24 @@ export default function RaidGroups({ roster, setRoster, onEditMember, onDeleteMe
 
   const groups = getGroupsFromRoster();
 
+  // Helper to find group of a member
+  const findMemberGroup = (memberId) => {
+    for (const [groupId, members] of Object.entries(groups)) {
+      if (members.find(m => m.id === memberId)) {
+        return parseInt(groupId);
+      }
+    }
+    return 1;
+  };
+
+  // Find group of a drop target
+  const findDropGroup = (targetId) => {
+    if (targetId.toString().startsWith('group-')) {
+      return parseInt(targetId.toString().replace('group-', ''));
+    }
+    return findMemberGroup(targetId);
+  };
+
   const handleDragStart = (event) => {
     setActiveId(event.active.id);
   };
@@ -130,37 +148,37 @@ export default function RaidGroups({ roster, setRoster, onEditMember, onDeleteMe
     if (!over) return;
 
     const memberId = active.id;
-    const targetGroup = over.id;
+    const targetId = over.id;
 
-    // Check if target is a group (starts with "group-")
-    let newGroup;
-    if (targetGroup.toString().startsWith('group-')) {
-      newGroup = parseInt(targetGroup.replace('group-', ''));
-    } else {
-      // It's a member ID, find their group
-      const member = roster.find(m => m.id === targetGroup);
-      if (member) {
-        newGroup = member.group || 1;
-      } else {
-        return;
+    const currentGroup = findMemberGroup(memberId);
+    const targetGroup = findDropGroup(targetId);
+
+    console.log('Drag end:', { memberId, currentGroup, targetGroup });
+
+    // If dropped in same group - try to reorder within group
+    if (currentGroup === targetGroup) {
+      const groupMembers = [...groups[currentGroup]];
+      const oldIndex = groupMembers.findIndex(m => m.id === memberId);
+      const newIndex = groupMembers.findIndex(m => m.id === targetId);
+
+      if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+        // Reorder within group - for now just stay in same group, reorder not critical
+        console.log('Reorder within group');
       }
+      return;
     }
 
-    // Find current group of the dragged member
-    const currentMember = roster.find(m => m.id === memberId);
-    if (!currentMember) return;
-    const currentGroup = currentMember.group || 1;
-
-    if (currentGroup === newGroup) return;
-
-    // Check if target group has space
-    const targetGroupMembers = groups[newGroup] || [];
-    if (targetGroupMembers.length >= 5) return;
+    // If dropped in different group - move member
+    const targetGroupMembers = groups[targetGroup] || [];
+    if (targetGroupMembers.length >= 5) {
+      console.log('Target group full');
+      return;
+    }
 
     // Update the member's group
     const newRoster = roster.map(m => {
       if (m.id === memberId) {
-        return { ...m, group: newGroup };
+        return { ...m, group: targetGroup };
       }
       return m;
     });
@@ -203,7 +221,7 @@ function GroupWithDroppable({ groupId, members, onEdit, onDelete, onAdd }) {
 
   return (
     <div ref={setNodeRef} className={`raid-group-wrapper ${isOver ? 'drag-over' : ''}`}>
-      <GroupDropZone
+      <GroupColumn
         groupId={groupId}
         members={members}
         onEdit={onEdit}

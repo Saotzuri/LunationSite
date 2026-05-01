@@ -21,6 +21,7 @@ export const specToClass = {
   'Frost DK': 'Death Knight',
   'Unholy DK': 'Death Knight',
   'Vengeance DH': 'Demon Hunter',
+  'Devourer DH': 'Demon Hunter',
   'Havoc DH': 'Demon Hunter',
   'Bear Druid': 'Druid',
   'Resto Druid': 'Druid',
