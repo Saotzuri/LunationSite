@@ -13,36 +13,55 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [roster, setRoster] = useState([]);
   const [wishlist, setWishlist] = useState([]);
+  const [lastSaved, setLastSaved] = useState(null);
+
+  console.log('App rendered, roster:', roster.length, 'wishlist:', wishlist.length);
 
   // Load data from server
   useEffect(() => {
+    console.log('Fetching data from server...');
     fetch(`${API_URL}/api/data`)
-      .then(res => res.json())
+      .then(res => {
+        console.log('Response status:', res.status);
+        return res.json();
+      })
       .then(data => {
+        console.log('Loaded data:', data);
         setRoster(data.roster || []);
         setWishlist(data.wishlist || []);
         setLoading(false);
       })
-      .catch(() => {
+      .catch(err => {
+        console.error('Load error:', err);
         setLoading(false);
       });
   }, []);
 
   // Save data when roster or wishlist changes
-  const saveData = (newRoster, newWishlist) => {
-    fetch(`${API_URL}/api/data`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ roster: newRoster, wishlist: newWishlist })
-    }).catch(console.error);
+  const saveData = async (newRoster, newWishlist) => {
+    console.log('Saving data...', { roster: newRoster.length, wishlist: newWishlist.length });
+    try {
+      const res = await fetch(`${API_URL}/api/data`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ roster: newRoster, wishlist: newWishlist })
+      });
+      const result = await res.json();
+      console.log('Save result:', result);
+      setLastSaved(new Date().toISOString());
+    } catch (err) {
+      console.error('Save error:', err);
+    }
   };
 
   const handleSetRoster = (newRoster) => {
+    console.log('handleSetRoster called with', newRoster.length, 'members');
     setRoster(newRoster);
     saveData(newRoster, wishlist);
   };
 
   const handleSetWishlist = (newWishlist) => {
+    console.log('handleSetWishlist called with', newWishlist.length, 'entries');
     setWishlist(newWishlist);
     saveData(roster, newWishlist);
   };
@@ -78,6 +97,7 @@ function App() {
       </main>
       <footer className="footer">
         Lunation Guild © {new Date().getFullYear()}
+        {lastSaved && <span style={{ marginLeft: '1rem', opacity: 0.5 }}>Last saved: {lastSaved}</span>}
       </footer>
       {showLogin && <LoginModal onClose={() => setShowLogin(false)} />}
     </BrowserRouter>
