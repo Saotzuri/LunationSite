@@ -8,12 +8,12 @@ const roleLabels = {
   ranged: 'Ranged DPS'
 };
 
-export default function MemberCard({ member, onEdit, onDelete }) {
+export default function MemberCard({ member, onEdit, onDelete, compact = false }) {
   const officer = isOfficer();
   const classColor = getClassColor(member.spec);
 
   return (
-    <div className="member-card">
+    <div className={`member-card ${compact ? 'compact-member-card' : ''}`}>
       {classColor && (
         <div className="class-color-bar" style={{ backgroundColor: classColor }} />
       )}

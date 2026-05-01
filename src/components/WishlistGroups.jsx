@@ -164,7 +164,13 @@ export default function WishlistGroups({ entries, wishlist, setWishlist, onEditE
     if (currentGroup === targetGroup) {
       const groupEntries = [...groups[currentGroup]].filter(entry => !entry.locked);
       const oldIndex = groupEntries.findIndex(e => e.id === entryId);
-      const newIndex = groupEntries.findIndex(e => e.id === targetId);
+      const overIsGroupContainer = targetId.toString().startsWith('wish-group-');
+      const hoveredEntry = entries.find(entry => entry.id === targetId);
+      const hoveringLockedEntry = Boolean(hoveredEntry?.locked);
+      const foundIndex = groupEntries.findIndex(e => e.id === targetId);
+      const newIndex = overIsGroupContainer || hoveringLockedEntry || foundIndex === -1
+        ? groupEntries.length - 1
+        : foundIndex;
 
       if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
         const reorderedGroup = arrayMove(groupEntries, oldIndex, newIndex);

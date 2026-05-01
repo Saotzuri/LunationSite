@@ -230,7 +230,7 @@ export default function RaidGroups({ roster, setRoster, onEditMember, onDeleteMe
         ))}
       </div>
       <DragOverlay>
-        {activeMember ? <MemberCard member={activeMember} /> : null}
+        {activeMember ? <MemberCard member={activeMember} compact={true} /> : null}
       </DragOverlay>
     </DndContext>
   );
