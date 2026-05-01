@@ -2,66 +2,120 @@ import express from 'express';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import fs from 'fs';
+import initSqlJs from 'sql.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-// Railway volume path - try multiple possible locations
-const possiblePaths = [
-  process.env.RAILWAY_VOLUME_DIR,
-  process.env.RAILWAY_DATA_DIR,
-  '/var/data',
-  '/data',
-  join(__dirname, 'data')
+// Database file path - try multiple locations for reliability
+const DB_PATHS = [
+  process.env.RAILWAY_VOLUME_DIR ? join(process.env.RAILWAY_VOLUME_DIR, 'guild.db') : null,
+  '/data/guild.db',
+  join(__dirname, 'guild.db')
 ].filter(Boolean);
 
-let dataDir = possiblePaths[0];
-let DATA_FILE;
+let DB_PATH = DB_PATHS[0];
+let db;
 
-// Find working data directory
-for (const path of possiblePaths) {
-  try {
-    if (!fs.existsSync(path)) {
-      fs.mkdirSync(path, { recursive: true });
+async function initDatabase() {
+  // Find working path
+  for (const path of DB_PATHS) {
+    try {
+      const dir = dirname(path);
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+      fs.writeFileSync(path, '');
+      fs.unlinkSync(path);
+      DB_PATH = path;
+      console.log('Using DB path:', path);
+      break;
+    } catch (e) {
+      console.log('Cannot use', path);
     }
-    const testFile = join(path, '.test');
-    fs.writeFileSync(testFile, 'test');
-    fs.unlinkSync(testFile);
-    dataDir = path;
-    break;
+  }
+
+  const SQL = await initSqlJs({
+    locateFile: file => join(__dirname, 'node_modules', 'sql.js', 'dist', file)
+  });
+
+  try {
+    if (fs.existsSync(DB_PATH)) {
+      const fileBuffer = fs.readFileSync(DB_PATH);
+      db = new SQL.Database(fileBuffer);
+      console.log('Loaded existing database');
+    } else {
+      db = new SQL.Database();
+      console.log('Created new database');
+    }
   } catch (err) {
-    console.log(`Cannot use ${path}: ${err.message}`);
+    console.log('Creating fresh database:', err.message);
+    db = new SQL.Database();
+  }
+
+  // Create tables if not exist
+  db.run(`
+    CREATE TABLE IF NOT EXISTS roster (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      role TEXT,
+      spec TEXT,
+      notes TEXT,
+      group_num INTEGER DEFAULT 1
+    )
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS wishlist (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      role TEXT,
+      priority TEXT DEFAULT 'medium',
+      notes TEXT
+    )
+  `);
+
+  // Check if we have data, if not insert default
+  const rosterCount = db.exec('SELECT COUNT(*) as count FROM roster')[0]?.values[0][0] || 0;
+
+  if (rosterCount === 0) {
+    const defaultRoster = [
+      { id: "1", name: "Aeliana", role: "healer", spec: "Holy Priest", notes: "RL", group_num: 1 },
+      { id: "2", name: "Bloodfang", role: "tank", spec: "Blood DK", notes: "", group_num: 1 },
+      { id: "3", name: "Shadowstrike", role: "melee", spec: "Assassination Rogue", notes: "", group_num: 2 },
+      { id: "4", name: "Frostbolt", role: "ranged", spec: "Frost Mage", notes: "", group_num: 2 },
+      { id: "5", name: "Stormbringer", role: "melee", spec: "Fury Warrior", notes: "", group_num: 3 },
+      { id: "6", name: "Lightweaver", role: "healer", spec: "Restoration Druid", notes: "", group_num: 3 },
+      { id: "7", name: "Darkpulse", role: "ranged", spec: "Affliction Warlock", notes: "", group_num: 4 },
+      { id: "8", name: "Ironclad", role: "tank", spec: "Prot Paladin", notes: "", group_num: 4 }
+    ];
+
+    const defaultWishlist = [
+      { id: "1", name: "1x Shadow Priest", role: "ranged", priority: "high", notes: "" },
+      { id: "2", name: "1x Devastation Evoker", role: "ranged", priority: "medium", notes: "" }
+    ];
+
+    defaultRoster.forEach(m => {
+      db.run('INSERT INTO roster VALUES (?, ?, ?, ?, ?, ?)', [m.id, m.name, m.role, m.spec, m.notes, m.group_num]);
+    });
+
+    defaultWishlist.forEach(w => {
+      db.run('INSERT INTO wishlist VALUES (?, ?, ?, ?, ?)', [w.id, w.name, w.role, w.priority, w.notes]);
+    });
+
+    saveDatabase();
+    console.log('Inserted default data');
   }
 }
 
-DATA_FILE = join(dataDir, 'guildData.json');
-
-// Create default data file if it doesn't exist
-const defaultData = {
-  roster: [
-    { id: "1", name: "Aeliana", role: "healer", spec: "Holy Priest", notes: "RL" },
-    { id: "2", name: "Bloodfang", role: "tank", spec: "Blood DK", notes: "" },
-    { id: "3", name: "Shadowstrike", role: "melee", spec: "Assassination Rogue", notes: "" },
-    { id: "4", name: "Frostbolt", role: "ranged", spec: "Frost Mage", notes: "" },
-    { id: "5", name: "Stormbringer", role: "melee", spec: "Fury Warrior", notes: "" },
-    { id: "6", name: "Lightweaver", role: "healer", spec: "Restoration Druid", notes: "" },
-    { id: "7", name: "Darkpulse", role: "ranged", spec: "Affliction Warlock", notes: "" },
-    { id: "8", name: "Ironclad", role: "tank", spec: "Prot Paladin", notes: "" }
-  ],
-  wishlist: [
-    { id: "1", name: "1x Shadow Priest", role: "ranged", priority: "high", notes: "" },
-    { id: "2", name: "1x Devastation Evoker", role: "ranged", priority: "medium", notes: "" }
-  ]
-};
-
-try {
-  if (!fs.existsSync(DATA_FILE)) {
-    fs.writeFileSync(DATA_FILE, JSON.stringify(defaultData, null, 2));
-    console.log('Created default data file');
+function saveDatabase() {
+  try {
+    const data = db.export();
+    const buffer = Buffer.from(data);
+    fs.writeFileSync(DB_PATH, buffer);
+    console.log('Database saved to', DB_PATH);
+  } catch (err) {
+    console.error('Failed to save database:', err);
   }
-} catch (err) {
-  console.error('Failed to create data file:', err);
 }
 
 app.use(express.json());
@@ -78,8 +132,27 @@ app.use((req, res, next) => {
 // GET data
 app.get('/api/data', (req, res) => {
   try {
-    const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf-8'));
-    res.json(data);
+    const rosterResult = db.exec('SELECT * FROM roster');
+    const wishlistResult = db.exec('SELECT * FROM wishlist');
+
+    const roster = rosterResult[0]?.values.map(row => ({
+      id: row[0],
+      name: row[1],
+      role: row[2],
+      spec: row[3],
+      notes: row[4],
+      group: row[5]
+    })) || [];
+
+    const wishlist = wishlistResult[0]?.values.map(row => ({
+      id: row[0],
+      name: row[1],
+      role: row[2],
+      priority: row[3],
+      notes: row[4]
+    })) || [];
+
+    res.json({ roster, wishlist });
   } catch (err) {
     console.error('Read error:', err);
     res.status(500).json({ error: 'Failed to read data' });
@@ -90,9 +163,25 @@ app.get('/api/data', (req, res) => {
 app.put('/api/data', (req, res) => {
   try {
     const { roster, wishlist } = req.body;
-    const data = { roster, wishlist };
-    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
-    console.log('Saved data:', { rosterCount: roster?.length, wishlistCount: wishlist?.length });
+
+    // Clear and repopulate roster
+    db.run('DELETE FROM roster');
+    roster.forEach(m => {
+      db.run('INSERT INTO roster VALUES (?, ?, ?, ?, ?, ?)', [
+        m.id, m.name, m.role, m.spec, m.notes, m.group || 1
+      ]);
+    });
+
+    // Clear and repopulate wishlist
+    db.run('DELETE FROM wishlist');
+    wishlist.forEach(w => {
+      db.run('INSERT INTO wishlist VALUES (?, ?, ?, ?, ?)', [
+        w.id, w.name, w.role, w.priority, w.notes
+      ]);
+    });
+
+    saveDatabase();
+    console.log('Saved data');
     res.json({ success: true });
   } catch (err) {
     console.error('Write error:', err);
@@ -107,8 +196,13 @@ app.get('*', (req, res) => {
   res.sendFile(join(__dirname, 'dist', 'index.html'));
 });
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`Data file: ${DATA_FILE}`);
-  console.log(`Data dir exists: ${fs.existsSync(dataDir)}`);
+// Start server
+initDatabase().then(() => {
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server running on port ${PORT}`);
+    console.log(`Database: ${DB_PATH}`);
+  });
+}).catch(err => {
+  console.error('Failed to init database:', err);
+  process.exit(1);
 });
