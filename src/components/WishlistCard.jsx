@@ -17,7 +17,7 @@ export default function WishlistCard({ entry, onEdit, onDelete, showActions = tr
 
   return (
     <div className={`wishlist-card ${locked ? 'wishlist-card-locked' : ''}`}>
-      {locked && <div className="wishlist-lock-badge">mirrored</div>}
+      {locked && <div className="wishlist-lock-badge">Belegt</div>}
       <div className="wishlist-info">
         <div className="wishlist-role" style={{ color: classColor || `var(--role-${entry.role})` }}>
           {roleLabels[entry.role] || 'Flex'}

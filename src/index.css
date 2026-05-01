@@ -898,6 +898,11 @@ main {
 
 .wishlist-card-locked {
   border-style: dashed;
+  padding-top: 1.9rem;
+}
+
+.wishlist-card-locked .wishlist-role {
+  margin-top: 0.1rem;
 }
 
 .wishlist-actions {
