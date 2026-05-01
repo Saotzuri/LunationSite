@@ -413,40 +413,28 @@ main {
 }
 
 /* Wishlist */
-.wishlist-role-board {
+.wishlist-context {
   display: grid;
-  gap: 1rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.7rem;
+  margin-bottom: 1rem;
 }
 
-.wishlist-role-column {
-  background: rgba(17, 24, 39, 0.5);
+.wishlist-gap-pill {
   border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 0.9rem;
-}
-
-.wishlist-role-header {
+  border-radius: 10px;
+  background: rgba(17, 24, 39, 0.45);
+  padding: 0.55rem 0.7rem;
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
+  align-items: center;
   color: var(--text-secondary);
-  font-weight: 700;
-  font-size: 0.78rem;
-  margin-bottom: 0.75rem;
+  font-size: 0.8rem;
 }
 
-.wishlist-role-count {
-  min-width: 22px;
-  height: 22px;
-  border-radius: 11px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--primary-dim);
+.wishlist-gap-pill strong {
   color: var(--primary);
-  font-size: 0.72rem;
+  font-size: 1rem;
 }
 
 .wishlist-grid {
@@ -863,4 +851,10 @@ main {
   margin-left: 0.65rem;
   margin-top: 0.8rem;
   align-self: flex-start;
+}
+
+@media (max-width: 768px) {
+  .wishlist-context {
+    grid-template-columns: 1fr;
+  }
 }

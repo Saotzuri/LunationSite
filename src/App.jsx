@@ -126,7 +126,7 @@ function App() {
           />
           <Route
             path="/wishlist"
-            element={<WishlistPage wishlist={wishlist} setWishlist={handleSetWishlist} />}
+            element={<WishlistPage roster={roster} wishlist={wishlist} setWishlist={handleSetWishlist} />}
           />
         </Routes>
       </main>

@@ -3,7 +3,13 @@ import { isOfficer } from '../utils/auth';
 import WishlistCard from '../components/WishlistCard';
 import MemberForm from '../components/MemberForm';
 
-export default function WishlistPage({ wishlist, setWishlist }) {
+const raidTargets = {
+  tank: 2,
+  healer: 4,
+  dps: 14
+};
+
+export default function WishlistPage({ roster, wishlist, setWishlist }) {
   const [showForm, setShowForm] = useState(false);
   const [editingEntry, setEditingEntry] = useState(null);
   const officer = isOfficer();
@@ -46,44 +52,53 @@ export default function WishlistPage({ wishlist, setWishlist }) {
 
   const priorityOrder = { high: 0, medium: 1, low: 2 };
   const sortedWishlist = [...wishlist].sort((a, b) => {
-    const roleOrder = { tank: 0, healer: 1, melee: 2, ranged: 3 };
-    const roleDelta = (roleOrder[a.role] ?? 99) - (roleOrder[b.role] ?? 99);
-    if (roleDelta !== 0) return roleDelta;
     return priorityOrder[a.priority] - priorityOrder[b.priority];
   });
 
-  const groupedWishlist = sortedWishlist.reduce((acc, entry) => {
-    const key = entry.role || 'flex';
-    if (!acc[key]) {
-      acc[key] = [];
-    }
-    acc[key].push(entry);
-    return acc;
-  }, {});
+  const currentCounts = roster.reduce(
+    (acc, member) => {
+      if (member.role === 'tank') acc.tank += 1;
+      if (member.role === 'healer') acc.healer += 1;
+      if (member.role === 'melee' || member.role === 'ranged') acc.dps += 1;
+      return acc;
+    },
+    { tank: 0, healer: 0, dps: 0 }
+  );
 
-  const roleSections = [
-    { key: 'tank', label: 'Tank' },
-    { key: 'healer', label: 'Healer' },
-    { key: 'melee', label: 'Melee DPS' },
-    { key: 'ranged', label: 'Ranged DPS' }
-  ];
+  const missingSlots = [
+    { key: 'tank', label: 'Tanks fehlen' },
+    { key: 'healer', label: 'Healer fehlen' },
+    { key: 'dps', label: 'DPS fehlen' }
+  ].map(item => ({
+    ...item,
+    missing: Math.max(raidTargets[item.key] - currentCounts[item.key], 0)
+  }));
 
   return (
     <div>
       <div className="page-header">
-        <h1 className="page-title">Wishlist</h1>
-        <p className="page-subtitle">Recruitment needs for the guild</p>
+        <h1 className="page-title">Roster Wishlist</h1>
+        <p className="page-subtitle">Was uns fuer die 2/4/14-Raid-Comp noch fehlt</p>
       </div>
 
       <div className="roster-section">
+        <div className="wishlist-context">
+          {missingSlots.map(item => (
+            <div key={item.key} className="wishlist-gap-pill">
+              <span>{item.label}</span>
+              <strong>{item.missing}</strong>
+            </div>
+          ))}
+        </div>
+
         <div className="section-header">
           <h2 className="section-title">
-            Recruitment by Spec
+            Wunsch-Specs fuer fehlende Slots
             <span className="section-count">{wishlist.length}</span>
           </h2>
           {officer && (
             <button className="add-btn" onClick={handleAddEntry}>
-              + Add Spec Need
+              + Wunsch-Spec
             </button>
           )}
         </div>
@@ -94,30 +109,15 @@ export default function WishlistPage({ wishlist, setWishlist }) {
             <p>No open positions in wishlist.</p>
           </div>
         ) : (
-          <div className="wishlist-role-board">
-            {roleSections.map(section => {
-              const entries = groupedWishlist[section.key] || [];
-              if (entries.length === 0) return null;
-
-              return (
-                <div key={section.key} className="wishlist-role-column">
-                  <div className="wishlist-role-header">
-                    <span>{section.label}</span>
-                    <span className="wishlist-role-count">{entries.length}</span>
-                  </div>
-                  <div className="wishlist-grid">
-                    {entries.map(entry => (
-                      <WishlistCard
-                        key={entry.id}
-                        entry={entry}
-                        onEdit={handleEditEntry}
-                        onDelete={handleDeleteEntry}
-                      />
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
+          <div className="wishlist-grid">
+            {sortedWishlist.map(entry => (
+              <WishlistCard
+                key={entry.id}
+                entry={entry}
+                onEdit={handleEditEntry}
+                onDelete={handleDeleteEntry}
+              />
+            ))}
           </div>
         )}
       </div>
