@@ -11,6 +11,7 @@ import {
 } from '@dnd-kit/core';
 import {
   SortableContext,
+  arrayMove,
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
   useSortable
@@ -153,17 +154,30 @@ export default function RaidGroups({ roster, setRoster, onEditMember, onDeleteMe
     const currentGroup = findMemberGroup(memberId);
     const targetGroup = findDropGroup(targetId);
 
-    console.log('Drag end:', { memberId, currentGroup, targetGroup });
-
-    // If dropped in same group - try to reorder within group
+    // Reorder inside the same group
     if (currentGroup === targetGroup) {
       const groupMembers = [...groups[currentGroup]];
       const oldIndex = groupMembers.findIndex(m => m.id === memberId);
       const newIndex = groupMembers.findIndex(m => m.id === targetId);
 
       if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
-        // Reorder within group - for now just stay in same group, reorder not critical
-        console.log('Reorder within group');
+        const reorderedGroup = arrayMove(groupMembers, oldIndex, newIndex);
+        const reorderedIds = reorderedGroup.map(member => member.id);
+        const positionById = new Map(reorderedIds.map((id, index) => [id, index]));
+
+        const inGroup = [];
+        const outsideGroup = [];
+
+        roster.forEach(member => {
+          if (member.group === currentGroup && positionById.has(member.id)) {
+            inGroup.push(member);
+          } else {
+            outsideGroup.push(member);
+          }
+        });
+
+        inGroup.sort((a, b) => positionById.get(a.id) - positionById.get(b.id));
+        setRoster([...outsideGroup, ...inGroup]);
       }
       return;
     }
@@ -171,7 +185,6 @@ export default function RaidGroups({ roster, setRoster, onEditMember, onDeleteMe
     // If dropped in different group - move member
     const targetGroupMembers = groups[targetGroup] || [];
     if (targetGroupMembers.length >= 5) {
-      console.log('Target group full');
       return;
     }
 
