@@ -1,20 +1,23 @@
 import { useState } from 'react';
 import { isOfficer } from '../utils/auth';
 import RaidComposition from '../components/RaidComposition';
-import MemberCard from '../components/MemberCard';
+import RaidGroups from '../components/RaidGroups';
 import MemberForm from '../components/MemberForm';
 
 export default function RosterPage({ roster, setRoster }) {
   const [showForm, setShowForm] = useState(false);
   const [editingMember, setEditingMember] = useState(null);
+  const [addToGroup, setAddToGroup] = useState(null);
   const officer = isOfficer();
 
-  const handleAddMember = () => {
+  const handleAddMember = (groupId = null) => {
+    setAddToGroup(groupId);
     setEditingMember(null);
     setShowForm(true);
   };
 
   const handleEditMember = (member) => {
+    setAddToGroup(null);
     setEditingMember(member);
     setShowForm(true);
   };
@@ -31,12 +34,32 @@ export default function RosterPage({ roster, setRoster }) {
     } else {
       const newMember = {
         ...data,
-        id: Date.now().toString()
+        id: Date.now().toString(),
+        group: addToGroup || getNextAvailableGroup()
       };
       setRoster(prev => [...prev, newMember]);
     }
     setShowForm(false);
     setEditingMember(null);
+    setAddToGroup(null);
+  };
+
+  const getNextAvailableGroup = () => {
+    const groupCounts = {};
+    roster.forEach(m => {
+      const g = m.group || 1;
+      groupCounts[g] = (groupCounts[g] || 0) + 1;
+    });
+    for (let i = 1; i <= 8; i++) {
+      if (!groupCounts[i] || groupCounts[i] < 5) return i;
+    }
+    return 1;
+  };
+
+  const handleCancel = () => {
+    setShowForm(false);
+    setEditingMember(null);
+    setAddToGroup(null);
   };
 
   return (
@@ -51,11 +74,11 @@ export default function RosterPage({ roster, setRoster }) {
       <div className="roster-section">
         <div className="section-header">
           <h2 className="section-title">
-            Members
+            Raid Groups
             <span className="section-count">{roster.length}</span>
           </h2>
           {officer && (
-            <button className="add-btn" onClick={handleAddMember}>
+            <button className="add-btn" onClick={() => handleAddMember()}>
               + Add Member
             </button>
           )}
@@ -67,16 +90,13 @@ export default function RosterPage({ roster, setRoster }) {
             <p>No members in roster yet.</p>
           </div>
         ) : (
-          <div className="roster-grid">
-            {roster.map(member => (
-              <MemberCard
-                key={member.id}
-                member={member}
-                onEdit={handleEditMember}
-                onDelete={handleDeleteMember}
-              />
-            ))}
-          </div>
+          <RaidGroups
+            roster={roster}
+            setRoster={setRoster}
+            onEditMember={handleEditMember}
+            onDeleteMember={handleDeleteMember}
+            onAddMember={handleAddMember}
+          />
         )}
       </div>
 
@@ -84,10 +104,7 @@ export default function RosterPage({ roster, setRoster }) {
         <MemberForm
           member={editingMember}
           onSave={handleSaveMember}
-          onCancel={() => {
-            setShowForm(false);
-            setEditingMember(null);
-          }}
+          onCancel={handleCancel}
         />
       )}
     </div>

@@ -6,11 +6,29 @@ import fs from 'fs';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
 const PORT = process.env.PORT || 8080;
-const DATA_FILE = process.env.DATA_FILE || join(__dirname, 'data', 'guildData.json');
+
+// Use persistent volume on Railway, fallback to local data folder
+const dataDir = process.env.RAILWAY_VOLUME_DIR || join(__dirname, 'data');
+const DATA_FILE = join(dataDir, 'guildData.json');
+
+// Ensure data directory exists
+if (!fs.existsSync(dataDir)) {
+  fs.mkdirSync(dataDir, { recursive: true });
+}
+
+// Create default data file if it doesn't exist
+const defaultData = {
+  roster: [],
+  wishlist: []
+};
+
+if (!fs.existsSync(DATA_FILE)) {
+  fs.writeFileSync(DATA_FILE, JSON.stringify(defaultData, null, 2));
+}
 
 app.use(express.json());
 
-// CORS für Development
+// CORS
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
@@ -29,7 +47,7 @@ app.get('/api/data', (req, res) => {
   }
 });
 
-// PUT data (save roster and wishlist)
+// PUT data
 app.put('/api/data', (req, res) => {
   try {
     const { roster, wishlist } = req.body;
@@ -41,14 +59,14 @@ app.put('/api/data', (req, res) => {
   }
 });
 
-// Serve static files from dist
+// Serve static files
 app.use(express.static(join(__dirname, 'dist')));
 
-// Fallback für SPA
 app.get('*', (req, res) => {
   res.sendFile(join(__dirname, 'dist', 'index.html'));
 });
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
+  console.log(`Data file: ${DATA_FILE}`);
 });
