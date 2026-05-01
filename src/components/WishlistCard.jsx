@@ -23,7 +23,6 @@ export default function WishlistCard({ entry, onEdit, onDelete, showActions = tr
 
   return (
     <div className={`wishlist-card ${locked ? 'wishlist-card-locked' : ''}`}>
-      {locked && <div className="wishlist-lock-badge">Belegt</div>}
       <div className="wishlist-info">
         <span className={`member-role ${entry.role}`}>
           {roleIcons[entry.role]} {roleLabels[entry.role] || 'Flex'}

@@ -35,7 +35,8 @@ async function initDatabase() {
         role TEXT,
         spec TEXT,
         notes TEXT,
-        group_num INTEGER DEFAULT 1
+        group_num INTEGER DEFAULT 1,
+        position INTEGER DEFAULT 0
       )
     `);
     console.log('Roster table ready');
@@ -48,7 +49,8 @@ async function initDatabase() {
         spec TEXT,
         priority TEXT DEFAULT 'medium',
         notes TEXT,
-        group_num INTEGER DEFAULT 1
+        group_num INTEGER DEFAULT 1,
+        position INTEGER DEFAULT 0
       )
     `);
     console.log('Wishlist table ready');
@@ -56,6 +58,8 @@ async function initDatabase() {
     // Lightweight schema migrations for older deployments
     await pool.query('ALTER TABLE wishlist ADD COLUMN IF NOT EXISTS spec TEXT');
     await pool.query('ALTER TABLE wishlist ADD COLUMN IF NOT EXISTS group_num INTEGER DEFAULT 1');
+    await pool.query('ALTER TABLE wishlist ADD COLUMN IF NOT EXISTS position INTEGER DEFAULT 0');
+    await pool.query('ALTER TABLE roster ADD COLUMN IF NOT EXISTS position INTEGER DEFAULT 0');
     await pool.query('ALTER TABLE wishlist ALTER COLUMN name DROP NOT NULL');
 
     // Check if we have data
@@ -119,8 +123,8 @@ app.use((req, res, next) => {
 app.get('/api/data', async (req, res) => {
   console.log('GET /api/data');
   try {
-    const rosterResult = await pool.query('SELECT * FROM roster ORDER BY group_num, name');
-    const wishlistResult = await pool.query('SELECT * FROM wishlist ORDER BY group_num, CASE priority WHEN \'high\' THEN 1 WHEN \'medium\' THEN 2 WHEN \'low\' THEN 3 END');
+    const rosterResult = await pool.query('SELECT * FROM roster ORDER BY group_num, position, name');
+    const wishlistResult = await pool.query('SELECT * FROM wishlist ORDER BY group_num, position, CASE priority WHEN \'high\' THEN 1 WHEN \'medium\' THEN 2 WHEN \'low\' THEN 3 END');
 
     const roster = rosterResult.rows.map(row => ({
       id: row.id,
@@ -128,7 +132,8 @@ app.get('/api/data', async (req, res) => {
       role: row.role,
       spec: row.spec,
       notes: row.notes,
-      group: row.group_num
+      group: row.group_num,
+      position: row.position || 0
     }));
 
     const wishlist = wishlistResult.rows.map(row => ({
@@ -138,7 +143,8 @@ app.get('/api/data', async (req, res) => {
       spec: row.spec,
       priority: row.priority,
       notes: row.notes,
-      group: row.group_num
+      group: row.group_num,
+      position: row.position || 0
     }));
 
     console.log('Returning roster:', roster.length, 'wishlist:', wishlist.length);
@@ -172,15 +178,16 @@ app.put('/api/data', async (req, res) => {
     if (hasRoster) {
       for (const m of roster) {
         await client.query(
-          `INSERT INTO roster (id, name, role, spec, notes, group_num)
-           VALUES ($1, $2, $3, $4, $5, $6)
+          `INSERT INTO roster (id, name, role, spec, notes, group_num, position)
+           VALUES ($1, $2, $3, $4, $5, $6, $7)
            ON CONFLICT (id) DO UPDATE SET
              name = EXCLUDED.name,
              role = EXCLUDED.role,
              spec = EXCLUDED.spec,
              notes = EXCLUDED.notes,
-             group_num = EXCLUDED.group_num`,
-          [m.id, m.name, m.role, m.spec, m.notes, m.group || 1]
+             group_num = EXCLUDED.group_num,
+             position = EXCLUDED.position`,
+          [m.id, m.name, m.role, m.spec, m.notes, m.group || 1, m.position || 0]
         );
       }
 
@@ -195,16 +202,17 @@ app.put('/api/data', async (req, res) => {
     if (hasWishlist) {
       for (const w of wishlist) {
         await client.query(
-          `INSERT INTO wishlist (id, name, role, spec, priority, notes, group_num)
-           VALUES ($1, $2, $3, $4, $5, $6, $7)
+          `INSERT INTO wishlist (id, name, role, spec, priority, notes, group_num, position)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
            ON CONFLICT (id) DO UPDATE SET
              name = EXCLUDED.name,
              role = EXCLUDED.role,
              spec = EXCLUDED.spec,
              priority = EXCLUDED.priority,
              notes = EXCLUDED.notes,
-             group_num = EXCLUDED.group_num`,
-          [w.id, w.name || null, w.role, w.spec || null, w.priority, w.notes || null, w.group || 1]
+             group_num = EXCLUDED.group_num,
+             position = EXCLUDED.position`,
+          [w.id, w.name || null, w.role, w.spec || null, w.priority, w.notes || null, w.group || 1, w.position || 0]
         );
       }
 

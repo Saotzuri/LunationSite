@@ -178,13 +178,13 @@ export default function RaidGroups({ roster, setRoster, onEditMember, onDeleteMe
 
         roster.forEach(member => {
           if (member.group === currentGroup && positionById.has(member.id)) {
-            inGroup.push(member);
+            inGroup.push({ ...member, position: positionById.get(member.id) });
           } else {
             outsideGroup.push(member);
           }
         });
 
-        inGroup.sort((a, b) => positionById.get(a.id) - positionById.get(b.id));
+        inGroup.sort((a, b) => (a.position || 0) - (b.position || 0));
         setRoster([...outsideGroup, ...inGroup]);
       }
       return;
@@ -196,10 +196,10 @@ export default function RaidGroups({ roster, setRoster, onEditMember, onDeleteMe
       return;
     }
 
-    // Update the member's group
+    // Update the member's group and set position to new index
     const newRoster = roster.map(m => {
       if (m.id === memberId) {
-        return { ...m, group: targetGroup };
+        return { ...m, group: targetGroup, position: targetGroupMembers.length };
       }
       return m;
     });

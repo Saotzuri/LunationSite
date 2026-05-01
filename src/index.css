@@ -878,23 +878,30 @@ main {
   padding-right: 0.75rem;
 }
 
-.wishlist-lock-badge {
-  position: absolute;
-  top: 0.45rem;
-  right: 0.45rem;
-  padding: 0.18rem 0.45rem;
-  border-radius: 4px;
-  font-size: 0.62rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  background: rgba(107, 114, 128, 0.22);
-  color: var(--text-muted);
-  border: 1px solid var(--border);
+.wishlist-card-locked {
+  border: 2px dashed #10b981;
+  position: relative;
 }
 
-.wishlist-card-locked {
-  border-style: dashed;
-  padding-top: 1.9rem;
+.wishlist-card-locked::after {
+  content: '🔒 Locked';
+  position: absolute;
+  top: -10px;
+  left: 10px;
+  background: #10b981;
+  color: #000;
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+}
+
+.wishlist-group .wishlist-card-locked::after {
+  font-size: 0.55rem;
+  padding: 0.12rem 0.4rem;
+  top: -9px;
 }
 
 .wishlist-card-locked .member-role {
@@ -912,10 +919,6 @@ main {
 .wishlist-group .wishlist-card {
   padding-top: 1.25rem;
   padding-right: 0.65rem;
-}
-
-.wishlist-group .wishlist-card-locked {
-  padding-top: 1.9rem;
 }
 
 .wishlist-group .wishlist-actions {

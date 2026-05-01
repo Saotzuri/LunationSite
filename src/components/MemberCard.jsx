@@ -8,6 +8,13 @@ const roleLabels = {
   ranged: 'Ranged DPS'
 };
 
+const roleIcons = {
+  tank: '🛡',
+  healer: '✚',
+  melee: '⚔',
+  ranged: '🏹'
+};
+
 export default function MemberCard({ member, onEdit, onDelete, compact = false }) {
   const officer = isOfficer();
   const classColor = getClassColor(member.spec);
@@ -18,7 +25,7 @@ export default function MemberCard({ member, onEdit, onDelete, compact = false }
         <div className="class-color-bar" style={{ backgroundColor: classColor }} />
       )}
       <span className={`member-role ${member.role}`}>
-        {roleLabels[member.role]}
+        {roleIcons[member.role]} {roleLabels[member.role]}
       </span>
       <h3 className="member-name" style={classColor ? { color: classColor } : {}}>
         {member.name}

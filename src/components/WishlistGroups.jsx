@@ -182,13 +182,13 @@ export default function WishlistGroups({ entries, wishlist, setWishlist, onEditE
 
         wishlist.forEach(entry => {
           if ((entry.group || 1) === currentGroup && positionById.has(entry.id)) {
-            inGroupEditable.push(entry);
+            inGroupEditable.push({ ...entry, position: positionById.get(entry.id) });
           } else {
             outsideGroup.push(entry);
           }
         });
 
-        inGroupEditable.sort((a, b) => positionById.get(a.id) - positionById.get(b.id));
+        inGroupEditable.sort((a, b) => (a.position || 0) - (b.position || 0));
         setWishlist([...outsideGroup, ...inGroupEditable]);
       }
       return;
@@ -198,7 +198,7 @@ export default function WishlistGroups({ entries, wishlist, setWishlist, onEditE
     if (targetGroupEntries.length >= 5) return;
 
     setWishlist(prev =>
-      prev.map(entry => (entry.id === entryId ? { ...entry, group: targetGroup } : entry))
+      prev.map(entry => (entry.id === entryId ? { ...entry, group: targetGroup, position: targetGroupEntries.length } : entry))
     );
   };
 
