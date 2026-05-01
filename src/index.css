@@ -513,18 +513,14 @@ main {
 
 .wishlist-info {
   flex: 1;
-}
-
-.wishlist-role {
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  margin-bottom: 0.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
 }
 
 .wishlist-spec {
-  font-size: 1rem;
-  font-weight: 600;
+  font-size: 1.35rem;
+  font-weight: 700;
   line-height: 1.25;
 }
 
@@ -901,7 +897,7 @@ main {
   padding-top: 1.9rem;
 }
 
-.wishlist-card-locked .wishlist-role {
+.wishlist-card-locked .member-role {
   margin-top: 0.1rem;
 }
 

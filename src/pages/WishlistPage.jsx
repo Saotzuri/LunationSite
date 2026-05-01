@@ -5,12 +5,6 @@ import RaidUtilityOverview from '../components/RaidUtilityOverview';
 import WishlistGroups from '../components/WishlistGroups';
 import MemberForm from '../components/MemberForm';
 
-const raidTargets = {
-  tank: 2,
-  healer: 4,
-  dps: 14
-};
-
 export default function WishlistPage({ roster, wishlist, setWishlist }) {
   const [showForm, setShowForm] = useState(false);
   const [editingEntry, setEditingEntry] = useState(null);
@@ -79,45 +73,17 @@ export default function WishlistPage({ roster, wishlist, setWishlist }) {
     return 1;
   };
 
-  const currentCounts = roster.reduce(
-    (acc, member) => {
-      if (member.role === 'tank') acc.tank += 1;
-      if (member.role === 'healer') acc.healer += 1;
-      if (member.role === 'melee' || member.role === 'ranged') acc.dps += 1;
-      return acc;
-    },
-    { tank: 0, healer: 0, dps: 0 }
-  );
-
-  const missingSlots = [
-    { key: 'tank', label: 'Tanks fehlen' },
-    { key: 'healer', label: 'Healer fehlen' },
-    { key: 'dps', label: 'DPS fehlen' }
-  ].map(item => ({
-    ...item,
-    missing: Math.max(raidTargets[item.key] - currentCounts[item.key], 0)
-  }));
-
   return (
     <div>
       <div className="page-header">
         <h1 className="page-title">Wunsch-Roster</h1>
-        <p className="page-subtitle">Was uns für die 2/4/14-Raid-Comp noch fehlt</p>
+        <p className="page-subtitle">Wunsch-Specs für unseren Raid-Roster</p>
       </div>
 
       <RaidComposition roster={combinedEntries} />
       <RaidUtilityOverview entries={combinedEntries} title="Wunsch-Roster Buffs & Utility" />
 
       <div className="roster-section">
-        <div className="wishlist-context">
-          {missingSlots.map(item => (
-            <div key={item.key} className="wishlist-gap-pill">
-              <span>{item.label}</span>
-              <strong>{item.missing}</strong>
-            </div>
-          ))}
-        </div>
-
         <div className="section-header">
           <h2 className="section-title">
             Wunsch-Roster Gruppen

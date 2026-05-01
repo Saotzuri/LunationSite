@@ -8,10 +8,16 @@ const roleLabels = {
   ranged: 'Ranged DPS'
 };
 
+const roleIcons = {
+  tank: '🛡',
+  healer: '✚',
+  melee: '⚔',
+  ranged: '🏹'
+};
+
 export default function WishlistCard({ entry, onEdit, onDelete, showActions = true, locked = false }) {
   const officer = isOfficer();
   const classColor = getClassColor(entry.spec);
-  const className = getClassFromSpec(entry.spec);
 
   const displayName = entry.spec || roleLabels[entry.role] || 'Any';
 
@@ -19,10 +25,10 @@ export default function WishlistCard({ entry, onEdit, onDelete, showActions = tr
     <div className={`wishlist-card ${locked ? 'wishlist-card-locked' : ''}`}>
       {locked && <div className="wishlist-lock-badge">Belegt</div>}
       <div className="wishlist-info">
-        <div className="wishlist-role" style={{ color: classColor || `var(--role-${entry.role})` }}>
-          {roleLabels[entry.role] || 'Flex'}
-        </div>
-        <div className="wishlist-spec">
+        <span className={`member-role ${entry.role}`}>
+          {roleIcons[entry.role]} {roleLabels[entry.role] || 'Flex'}
+        </span>
+        <div className="wishlist-spec" style={classColor ? { color: classColor } : {}}>
           {displayName}
         </div>
       </div>
