@@ -25,7 +25,7 @@ export default function Navbar({ onLoginClick }) {
             to="/wishlist"
             className={`nav-link ${location.pathname === '/wishlist' ? 'active' : ''}`}
           >
-            Wishlist
+            Wunsch Roster
           </Link>
           {officer ? (
             <button className="login-btn" onClick={handleLogout}>
