@@ -14,7 +14,7 @@ const priorityColors = {
   low: 'var(--text-muted)'
 };
 
-export default function WishlistCard({ entry, onEdit, onDelete, showActions = true }) {
+export default function WishlistCard({ entry, onEdit, onDelete, showActions = true, locked = false }) {
   const officer = isOfficer();
   const classColor = getClassColor(entry.spec);
   const className = getClassFromSpec(entry.spec);
@@ -22,10 +22,11 @@ export default function WishlistCard({ entry, onEdit, onDelete, showActions = tr
   const displayName = entry.spec || roleLabels[entry.role] || 'Any';
 
   return (
-    <div className="wishlist-card">
+    <div className={`wishlist-card ${locked ? 'wishlist-card-locked' : ''}`}>
       <div className="wishlist-priority-badge" style={{ backgroundColor: priorityColors[entry.priority] }}>
         {entry.priority}
       </div>
+      {locked && <div className="wishlist-lock-badge">mirrored</div>}
       <div className="wishlist-info">
         <div className="wishlist-role" style={{ color: classColor || `var(--role-${entry.role})` }}>
           {roleLabels[entry.role] || 'Flex'}
@@ -35,7 +36,7 @@ export default function WishlistCard({ entry, onEdit, onDelete, showActions = tr
         </div>
         {className && <div className="wishlist-class">{className}</div>}
       </div>
-      {officer && showActions && (
+      {officer && showActions && !locked && (
         <div className="member-actions wishlist-actions">
           <button
             className="action-btn"

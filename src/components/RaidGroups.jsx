@@ -22,7 +22,7 @@ import MemberCard from './MemberCard';
 
 const GROUP_COUNT = 8;
 
-function SortableMember({ member, onEdit, onDelete }) {
+function SortableMember({ member, onEdit, onDelete, disabled = false }) {
   const {
     attributes,
     listeners,
@@ -32,7 +32,8 @@ function SortableMember({ member, onEdit, onDelete }) {
     isDragging
   } = useSortable({
     id: member.id,
-    data: { member }
+    data: { member },
+    disabled
   });
 
   const style = {
@@ -48,7 +49,7 @@ function SortableMember({ member, onEdit, onDelete }) {
   );
 }
 
-function GroupColumn({ groupId, members, onEdit, onDelete, onAdd, isOver }) {
+function GroupColumn({ groupId, members, onEdit, onDelete, onAdd, isOver, canManage }) {
   const officer = isOfficer();
 
   return (
@@ -68,11 +69,12 @@ function GroupColumn({ groupId, members, onEdit, onDelete, onAdd, isOver }) {
               member={member}
               onEdit={onEdit}
               onDelete={onDelete}
+              disabled={!canManage}
             />
           ))}
         </div>
       </SortableContext>
-      {officer && members.length < 5 && (
+      {officer && canManage && members.length < 5 && (
         <button className="add-to-group-btn" onClick={() => onAdd(groupId)}>
           + Slot
         </button>
@@ -83,6 +85,7 @@ function GroupColumn({ groupId, members, onEdit, onDelete, onAdd, isOver }) {
 
 export default function RaidGroups({ roster, setRoster, onEditMember, onDeleteMember, onAddMember }) {
   const [activeId, setActiveId] = useState(null);
+  const canManage = isOfficer();
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -139,10 +142,15 @@ export default function RaidGroups({ roster, setRoster, onEditMember, onDeleteMe
   };
 
   const handleDragStart = (event) => {
+    if (!canManage) return;
     setActiveId(event.active.id);
   };
 
   const handleDragEnd = (event) => {
+    if (!canManage) {
+      setActiveId(null);
+      return;
+    }
     const { active, over } = event;
     setActiveId(null);
 
@@ -217,6 +225,7 @@ export default function RaidGroups({ roster, setRoster, onEditMember, onDeleteMe
             onEdit={onEditMember}
             onDelete={onDeleteMember}
             onAdd={onAddMember}
+            canManage={canManage}
           />
         ))}
       </div>
@@ -227,7 +236,7 @@ export default function RaidGroups({ roster, setRoster, onEditMember, onDeleteMe
   );
 }
 
-function GroupWithDroppable({ groupId, members, onEdit, onDelete, onAdd }) {
+function GroupWithDroppable({ groupId, members, onEdit, onDelete, onAdd, canManage }) {
   const { setNodeRef, isOver } = useDroppable({
     id: `group-${groupId}`
   });
@@ -241,6 +250,7 @@ function GroupWithDroppable({ groupId, members, onEdit, onDelete, onAdd }) {
         onDelete={onDelete}
         onAdd={onAdd}
         isOver={isOver}
+        canManage={canManage}
       />
     </div>
   );

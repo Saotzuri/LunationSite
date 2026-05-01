@@ -898,6 +898,24 @@ main {
   color: var(--bg-dark);
 }
 
+.wishlist-lock-badge {
+  position: absolute;
+  top: 0.45rem;
+  left: 0.45rem;
+  padding: 0.18rem 0.45rem;
+  border-radius: 4px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  background: rgba(107, 114, 128, 0.22);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+
+.wishlist-card-locked {
+  border-style: dashed;
+}
+
 .wishlist-actions {
   position: static !important;
   opacity: 1 !important;

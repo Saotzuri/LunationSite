@@ -16,6 +16,16 @@ export default function WishlistPage({ roster, wishlist, setWishlist }) {
   const [editingEntry, setEditingEntry] = useState(null);
   const [addToGroup, setAddToGroup] = useState(null);
   const officer = isOfficer();
+  const mirroredRosterEntries = roster.map(member => ({
+    id: `mirror-${member.id}`,
+    role: member.role,
+    spec: member.spec,
+    priority: 'low',
+    group: member.group || 1,
+    locked: true
+  }));
+  const wishlistEntries = wishlist.map(entry => ({ ...entry, locked: false }));
+  const combinedEntries = [...mirroredRosterEntries, ...wishlistEntries];
 
   const handleAddEntry = (groupId = null) => {
     setAddToGroup(groupId);
@@ -24,12 +34,14 @@ export default function WishlistPage({ roster, wishlist, setWishlist }) {
   };
 
   const handleEditEntry = (entry) => {
+    if (entry.locked) return;
     setAddToGroup(null);
     setEditingEntry(entry);
     setShowForm(true);
   };
 
   const handleDeleteEntry = (id) => {
+    if (id.toString().startsWith('mirror-')) return;
     if (window.confirm('Are you sure you want to remove this entry?')) {
       setWishlist(prev => prev.filter(e => e.id !== id));
     }
@@ -59,7 +71,7 @@ export default function WishlistPage({ roster, wishlist, setWishlist }) {
 
   const getNextAvailableGroup = () => {
     const groupCounts = {};
-    wishlist.forEach(entry => {
+    combinedEntries.forEach(entry => {
       const g = entry.group || 1;
       groupCounts[g] = (groupCounts[g] || 0) + 1;
     });
@@ -95,8 +107,8 @@ export default function WishlistPage({ roster, wishlist, setWishlist }) {
         <p className="page-subtitle">Was uns fuer die 2/4/14-Raid-Comp noch fehlt</p>
       </div>
 
-      <RaidComposition roster={wishlist} />
-      <RaidUtilityOverview entries={wishlist} title="Wunsch-Roster Buffs & Utility" />
+      <RaidComposition roster={combinedEntries} />
+      <RaidUtilityOverview entries={combinedEntries} title="Wunsch-Roster Buffs & Utility" />
 
       <div className="roster-section">
         <div className="wishlist-context">
@@ -111,7 +123,7 @@ export default function WishlistPage({ roster, wishlist, setWishlist }) {
         <div className="section-header">
           <h2 className="section-title">
             Wunsch-Roster Gruppen
-            <span className="section-count">{wishlist.length}</span>
+            <span className="section-count">{combinedEntries.length}</span>
           </h2>
           {officer && (
             <button className="add-btn" onClick={handleAddEntry}>
@@ -120,13 +132,14 @@ export default function WishlistPage({ roster, wishlist, setWishlist }) {
           )}
         </div>
 
-        {wishlist.length === 0 ? (
+        {combinedEntries.length === 0 ? (
           <div className="empty-state">
             <div className="empty-state-icon">📋</div>
             <p>No open positions in wishlist.</p>
           </div>
         ) : (
           <WishlistGroups
+            entries={combinedEntries}
             wishlist={wishlist}
             setWishlist={setWishlist}
             onEditEntry={handleEditEntry}
