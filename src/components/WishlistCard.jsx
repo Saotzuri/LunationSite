@@ -14,7 +14,7 @@ const priorityColors = {
   low: 'var(--text-muted)'
 };
 
-export default function WishlistCard({ entry, onEdit, onDelete }) {
+export default function WishlistCard({ entry, onEdit, onDelete, showActions = true }) {
   const officer = isOfficer();
   const classColor = getClassColor(entry.spec);
   const className = getClassFromSpec(entry.spec);
@@ -35,7 +35,7 @@ export default function WishlistCard({ entry, onEdit, onDelete }) {
         </div>
         {className && <div className="wishlist-class">{className}</div>}
       </div>
-      {officer && (
+      {officer && showActions && (
         <div className="member-actions wishlist-actions">
           <button
             className="action-btn"

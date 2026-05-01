@@ -47,13 +47,15 @@ async function initDatabase() {
         role TEXT,
         spec TEXT,
         priority TEXT DEFAULT 'medium',
-        notes TEXT
+        notes TEXT,
+        group_num INTEGER DEFAULT 1
       )
     `);
     console.log('Wishlist table ready');
 
     // Lightweight schema migrations for older deployments
     await pool.query('ALTER TABLE wishlist ADD COLUMN IF NOT EXISTS spec TEXT');
+    await pool.query('ALTER TABLE wishlist ADD COLUMN IF NOT EXISTS group_num INTEGER DEFAULT 1');
     await pool.query('ALTER TABLE wishlist ALTER COLUMN name DROP NOT NULL');
 
     // Check if we have data
@@ -75,8 +77,8 @@ async function initDatabase() {
       ];
 
       const defaultWishlist = [
-        { id: "1", name: "1x Shadow Priest", role: "ranged", priority: "high", notes: "" },
-        { id: "2", name: "1x Devastation Evoker", role: "ranged", priority: "medium", notes: "" }
+        { id: "1", name: "1x Shadow Priest", role: "ranged", spec: "Shadow Priest", priority: "high", notes: "", group_num: 1 },
+        { id: "2", name: "1x Devastation Evoker", role: "ranged", spec: "Devastation Evoker", priority: "medium", notes: "", group_num: 1 }
       ];
 
       for (const m of defaultRoster) {
@@ -88,8 +90,8 @@ async function initDatabase() {
 
       for (const w of defaultWishlist) {
         await pool.query(
-          'INSERT INTO wishlist (id, name, role, priority, notes) VALUES ($1, $2, $3, $4, $5)',
-          [w.id, w.name, w.role, w.priority, w.notes]
+          'INSERT INTO wishlist (id, name, role, spec, priority, notes, group_num) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+          [w.id, w.name, w.role, w.spec, w.priority, w.notes, w.group_num]
         );
       }
       console.log('Default data inserted');
@@ -118,7 +120,7 @@ app.get('/api/data', async (req, res) => {
   console.log('GET /api/data');
   try {
     const rosterResult = await pool.query('SELECT * FROM roster ORDER BY group_num, name');
-    const wishlistResult = await pool.query('SELECT * FROM wishlist ORDER BY CASE priority WHEN \'high\' THEN 1 WHEN \'medium\' THEN 2 WHEN \'low\' THEN 3 END');
+    const wishlistResult = await pool.query('SELECT * FROM wishlist ORDER BY group_num, CASE priority WHEN \'high\' THEN 1 WHEN \'medium\' THEN 2 WHEN \'low\' THEN 3 END');
 
     const roster = rosterResult.rows.map(row => ({
       id: row.id,
@@ -135,7 +137,8 @@ app.get('/api/data', async (req, res) => {
       role: row.role,
       spec: row.spec,
       priority: row.priority,
-      notes: row.notes
+      notes: row.notes,
+      group: row.group_num
     }));
 
     console.log('Returning roster:', roster.length, 'wishlist:', wishlist.length);
@@ -192,15 +195,16 @@ app.put('/api/data', async (req, res) => {
     if (hasWishlist) {
       for (const w of wishlist) {
         await client.query(
-          `INSERT INTO wishlist (id, name, role, spec, priority, notes)
-           VALUES ($1, $2, $3, $4, $5, $6)
+          `INSERT INTO wishlist (id, name, role, spec, priority, notes, group_num)
+           VALUES ($1, $2, $3, $4, $5, $6, $7)
            ON CONFLICT (id) DO UPDATE SET
              name = EXCLUDED.name,
              role = EXCLUDED.role,
              spec = EXCLUDED.spec,
              priority = EXCLUDED.priority,
-             notes = EXCLUDED.notes`,
-          [w.id, w.name || null, w.role, w.spec || null, w.priority, w.notes || null]
+             notes = EXCLUDED.notes,
+             group_num = EXCLUDED.group_num`,
+          [w.id, w.name || null, w.role, w.spec || null, w.priority, w.notes || null, w.group || 1]
         );
       }
 

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { isOfficer } from '../utils/auth';
 import RaidComposition from '../components/RaidComposition';
 import RaidGroups from '../components/RaidGroups';
+import RaidUtilityOverview from '../components/RaidUtilityOverview';
 import MemberForm from '../components/MemberForm';
 
 export default function RosterPage({ roster, setRoster }) {
@@ -70,11 +71,12 @@ export default function RosterPage({ roster, setRoster }) {
       </div>
 
       <RaidComposition roster={roster} />
+      <RaidUtilityOverview entries={roster} title="Raid Buffs & Utility" />
 
       <div className="roster-section">
         <div className="section-header">
           <h2 className="section-title">
-            Raid Groups
+            Roster
             <span className="section-count">{roster.length}</span>
           </h2>
           {officer && (

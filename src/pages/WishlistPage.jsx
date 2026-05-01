@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { isOfficer } from '../utils/auth';
-import WishlistCard from '../components/WishlistCard';
+import RaidComposition from '../components/RaidComposition';
+import RaidUtilityOverview from '../components/RaidUtilityOverview';
+import WishlistGroups from '../components/WishlistGroups';
 import MemberForm from '../components/MemberForm';
 
 const raidTargets = {
@@ -12,14 +14,17 @@ const raidTargets = {
 export default function WishlistPage({ roster, wishlist, setWishlist }) {
   const [showForm, setShowForm] = useState(false);
   const [editingEntry, setEditingEntry] = useState(null);
+  const [addToGroup, setAddToGroup] = useState(null);
   const officer = isOfficer();
 
-  const handleAddEntry = () => {
+  const handleAddEntry = (groupId = null) => {
+    setAddToGroup(groupId);
     setEditingEntry(null);
     setShowForm(true);
   };
 
   const handleEditEntry = (entry) => {
+    setAddToGroup(null);
     setEditingEntry(entry);
     setShowForm(true);
   };
@@ -34,7 +39,8 @@ export default function WishlistPage({ roster, wishlist, setWishlist }) {
     const normalizedData = {
       role: data.role,
       spec: data.spec,
-      priority: data.priority || 'medium'
+      priority: data.priority || 'medium',
+      group: data.group || addToGroup || getNextAvailableGroup()
     };
 
     if (editingEntry) {
@@ -48,12 +54,20 @@ export default function WishlistPage({ roster, wishlist, setWishlist }) {
     }
     setShowForm(false);
     setEditingEntry(null);
+    setAddToGroup(null);
   };
 
-  const priorityOrder = { high: 0, medium: 1, low: 2 };
-  const sortedWishlist = [...wishlist].sort((a, b) => {
-    return priorityOrder[a.priority] - priorityOrder[b.priority];
-  });
+  const getNextAvailableGroup = () => {
+    const groupCounts = {};
+    wishlist.forEach(entry => {
+      const g = entry.group || 1;
+      groupCounts[g] = (groupCounts[g] || 0) + 1;
+    });
+    for (let i = 1; i <= 8; i++) {
+      if (!groupCounts[i] || groupCounts[i] < 5) return i;
+    }
+    return 1;
+  };
 
   const currentCounts = roster.reduce(
     (acc, member) => {
@@ -77,9 +91,12 @@ export default function WishlistPage({ roster, wishlist, setWishlist }) {
   return (
     <div>
       <div className="page-header">
-        <h1 className="page-title">Roster Wishlist</h1>
+        <h1 className="page-title">Wunsch-Roster</h1>
         <p className="page-subtitle">Was uns fuer die 2/4/14-Raid-Comp noch fehlt</p>
       </div>
+
+      <RaidComposition roster={wishlist} />
+      <RaidUtilityOverview entries={wishlist} title="Wunsch-Roster Buffs & Utility" />
 
       <div className="roster-section">
         <div className="wishlist-context">
@@ -93,12 +110,12 @@ export default function WishlistPage({ roster, wishlist, setWishlist }) {
 
         <div className="section-header">
           <h2 className="section-title">
-            Wunsch-Specs fuer fehlende Slots
+            Wunsch-Roster Gruppen
             <span className="section-count">{wishlist.length}</span>
           </h2>
           {officer && (
             <button className="add-btn" onClick={handleAddEntry}>
-              + Wunsch-Spec
+              + Add Wunsch-Spec
             </button>
           )}
         </div>
@@ -109,16 +126,13 @@ export default function WishlistPage({ roster, wishlist, setWishlist }) {
             <p>No open positions in wishlist.</p>
           </div>
         ) : (
-          <div className="wishlist-grid">
-            {sortedWishlist.map(entry => (
-              <WishlistCard
-                key={entry.id}
-                entry={entry}
-                onEdit={handleEditEntry}
-                onDelete={handleDeleteEntry}
-              />
-            ))}
-          </div>
+          <WishlistGroups
+            wishlist={wishlist}
+            setWishlist={setWishlist}
+            onEditEntry={handleEditEntry}
+            onDeleteEntry={handleDeleteEntry}
+            onAddEntry={handleAddEntry}
+          />
         )}
       </div>
 
@@ -130,6 +144,7 @@ export default function WishlistPage({ roster, wishlist, setWishlist }) {
           onCancel={() => {
             setShowForm(false);
             setEditingEntry(null);
+            setAddToGroup(null);
           }}
         />
       )}
