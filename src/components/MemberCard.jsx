@@ -17,18 +17,11 @@ export default function MemberCard({ member, onEdit, onDelete }) {
       </span>
       <h3 className="member-name">{member.name}</h3>
       <p className="member-spec">{member.spec}</p>
-      <div className="member-links">
-        {member.wowheadUrl && (
-          <a
-            href={member.wowheadUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="member-link"
-          >
-            WoWHead ↗
-          </a>
-        )}
-      </div>
+      {member.notes && (
+        <p className="member-notes" style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.5rem' }}>
+          {member.notes}
+        </p>
+      )}
       {officer && (
         <div className="member-actions">
           <button
