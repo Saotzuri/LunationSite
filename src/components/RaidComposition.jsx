@@ -1,18 +1,10 @@
 import { useMemo } from 'react';
 
-const roleLabels = {
-  tank: 'Tanks',
-  healer: 'Healer',
-  melee: 'Melee DPS',
-  ranged: 'Ranged DPS'
-};
-
-const roleTargets = {
-  tank: 2,
-  healer: 3,
-  melee: 4,
-  ranged: 4
-};
+const roleConfig = [
+  { key: 'tank', label: 'Tanks', target: 2, colorClass: 'tank' },
+  { key: 'healer', label: 'Healer', target: 4, colorClass: 'healer' },
+  { key: 'dps', label: 'DPS', target: 14, colorClass: 'dps' }
+];
 
 export default function RaidComposition({ roster }) {
   const stats = useMemo(() => {
@@ -25,17 +17,31 @@ export default function RaidComposition({ roster }) {
     return counts;
   }, [roster]);
 
+  const totalDps = stats.melee + stats.ranged;
+
   return (
     <div className="raid-composition">
-      {Object.entries(roleLabels).map(([role, label]) => {
-        const count = stats[role];
-        const target = roleTargets[role];
+      {roleConfig.map(({ key, label, target, colorClass }) => {
+        const count = key === 'dps' ? totalDps : stats[key];
         const percentage = Math.min((count / target) * 100, 100);
 
         return (
-          <div key={role} className={`stat-card ${role}`}>
-            <div className="stat-value">{count}</div>
-            <div className="stat-label">{label}</div>
+          <div key={key} className={`stat-card ${colorClass}`}>
+            <div className="stat-header">
+              <div className="stat-label">{label}</div>
+              <div className="stat-target">/{target}</div>
+            </div>
+            <div className="stat-value-row">
+              <div className="stat-value">{count}</div>
+            </div>
+
+            {key === 'dps' && (
+              <div className="dps-breakdown" aria-hidden="true">
+                <span>Melee: {stats.melee}</span>
+                <span>Ranged: {stats.ranged}</span>
+              </div>
+            )}
+
             <div className="stat-bar">
               <div
                 className="stat-bar-fill"
