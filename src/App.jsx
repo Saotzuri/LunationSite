@@ -11,6 +11,8 @@ const API_URL = '';
 function App() {
   const [showLogin, setShowLogin] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [hasLoadedFromServer, setHasLoadedFromServer] = useState(false);
+  const [loadError, setLoadError] = useState(false);
   const [roster, setRoster] = useState([]);
   const [wishlist, setWishlist] = useState([]);
 
@@ -25,10 +27,13 @@ function App() {
         console.log('Loaded data:', data);
         setRoster(data.roster || []);
         setWishlist(data.wishlist || []);
+        setLoadError(false);
+        setHasLoadedFromServer(true);
         setLoading(false);
       })
       .catch(err => {
         console.error('Load error:', err);
+        setLoadError(true);
         setLoading(false);
       });
   }, []);
@@ -69,9 +74,8 @@ function App() {
       // It's a direct value
       console.log('Direct roster update with', newRosterOrUpdater?.length, 'members');
       setRoster(newRosterOrUpdater);
-      saveData(newRosterOrUpdater, wishlist);
     }
-  }, [wishlist, saveData]);
+  }, []);
 
   // Similarly for wishlist
   const handleSetWishlist = useCallback((newWishlistOrUpdater) => {
@@ -86,17 +90,16 @@ function App() {
     } else {
       console.log('Direct wishlist update with', newWishlistOrUpdater?.length, 'entries');
       setWishlist(newWishlistOrUpdater);
-      saveData(roster, newWishlistOrUpdater);
     }
-  }, [roster, saveData]);
+  }, []);
 
-  // Effect to save when roster or wishlist changes (after initial load)
+  // Save only after successful initial load to prevent accidental wipes on load errors
   useEffect(() => {
-    if (!loading) {
+    if (!loading && hasLoadedFromServer && !loadError) {
       console.log('Auto-saving due to state change');
       saveData(roster, wishlist);
     }
-  }, [roster, wishlist, loading, saveData]);
+  }, [roster, wishlist, loading, hasLoadedFromServer, loadError, saveData]);
 
   if (loading) {
     return (

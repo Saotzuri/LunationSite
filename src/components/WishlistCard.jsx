@@ -1,5 +1,5 @@
 import { isOfficer } from '../utils/auth';
-import { getClassColor } from '../utils/classColors';
+import { getClassColor, getClassFromSpec } from '../utils/classColors';
 
 const roleLabels = {
   tank: 'Tank',
@@ -17,8 +17,8 @@ const priorityColors = {
 export default function WishlistCard({ entry, onEdit, onDelete }) {
   const officer = isOfficer();
   const classColor = getClassColor(entry.spec);
+  const className = getClassFromSpec(entry.spec);
 
-  // Use spec or role for display
   const displayName = entry.spec || roleLabels[entry.role] || 'Any';
 
   return (
@@ -28,11 +28,12 @@ export default function WishlistCard({ entry, onEdit, onDelete }) {
       </div>
       <div className="wishlist-info">
         <div className="wishlist-role" style={{ color: classColor || `var(--role-${entry.role})` }}>
+          {roleLabels[entry.role] || 'Flex'}
+        </div>
+        <div className="wishlist-spec">
           {displayName}
         </div>
-        {entry.notes && (
-          <div className="wishlist-notes">{entry.notes}</div>
-        )}
+        {className && <div className="wishlist-class">{className}</div>}
       </div>
       {officer && (
         <div className="member-actions" style={{ opacity: 1, position: 'static', marginLeft: '1rem' }}>

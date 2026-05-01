@@ -102,6 +102,15 @@ export default function MemberForm({ member, onSave, onCancel, isWishlist = fals
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (isWishlist) {
+      onSave({
+        id: formData.id,
+        role: formData.role,
+        spec: formData.spec,
+        priority: formData.priority
+      });
+      return;
+    }
     onSave(formData);
   };
 
@@ -112,17 +121,19 @@ export default function MemberForm({ member, onSave, onCancel, isWishlist = fals
           {member?.id ? (isWishlist ? 'Edit Wishlist Entry' : 'Edit Member') : (isWishlist ? 'Add to Wishlist' : 'Add Member')}
         </h2>
         <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label className="form-label">Name</label>
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              className="form-input"
-              placeholder={isWishlist ? "e.g. 1x Shadow Priest" : "Character name"}
-            />
-          </div>
+          {!isWishlist && (
+            <div className="form-group">
+              <label className="form-label">Name</label>
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                className="form-input"
+                placeholder="Character name"
+              />
+            </div>
+          )}
 
           <div className="form-group">
             <label className="form-label">Spec</label>
@@ -156,17 +167,19 @@ export default function MemberForm({ member, onSave, onCancel, isWishlist = fals
             </div>
           )}
 
-          <div className="form-group">
-            <label className="form-label">Notes</label>
-            <input
-              type="text"
-              name="notes"
-              value={formData.notes}
-              onChange={handleChange}
-              className="form-input"
-              placeholder="Optional notes..."
-            />
-          </div>
+          {!isWishlist && (
+            <div className="form-group">
+              <label className="form-label">Notes</label>
+              <input
+                type="text"
+                name="notes"
+                value={formData.notes}
+                onChange={handleChange}
+                className="form-input"
+                placeholder="Optional notes..."
+              />
+            </div>
+          )}
 
           <div className="form-actions">
             <button type="button" className="btn btn-secondary" onClick={onCancel}>

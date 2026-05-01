@@ -25,11 +25,17 @@ export default function WishlistPage({ wishlist, setWishlist }) {
   };
 
   const handleSaveEntry = (data) => {
+    const normalizedData = {
+      role: data.role,
+      spec: data.spec,
+      priority: data.priority || 'medium'
+    };
+
     if (editingEntry) {
-      setWishlist(prev => prev.map(e => e.id === editingEntry.id ? { ...e, ...data } : e));
+      setWishlist(prev => prev.map(e => e.id === editingEntry.id ? { ...e, ...normalizedData } : e));
     } else {
       const newEntry = {
-        ...data,
+        ...normalizedData,
         id: Date.now().toString()
       };
       setWishlist(prev => [...prev, newEntry]);
@@ -39,7 +45,28 @@ export default function WishlistPage({ wishlist, setWishlist }) {
   };
 
   const priorityOrder = { high: 0, medium: 1, low: 2 };
-  const sortedWishlist = [...wishlist].sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
+  const sortedWishlist = [...wishlist].sort((a, b) => {
+    const roleOrder = { tank: 0, healer: 1, melee: 2, ranged: 3 };
+    const roleDelta = (roleOrder[a.role] ?? 99) - (roleOrder[b.role] ?? 99);
+    if (roleDelta !== 0) return roleDelta;
+    return priorityOrder[a.priority] - priorityOrder[b.priority];
+  });
+
+  const groupedWishlist = sortedWishlist.reduce((acc, entry) => {
+    const key = entry.role || 'flex';
+    if (!acc[key]) {
+      acc[key] = [];
+    }
+    acc[key].push(entry);
+    return acc;
+  }, {});
+
+  const roleSections = [
+    { key: 'tank', label: 'Tank' },
+    { key: 'healer', label: 'Healer' },
+    { key: 'melee', label: 'Melee DPS' },
+    { key: 'ranged', label: 'Ranged DPS' }
+  ];
 
   return (
     <div>
@@ -51,12 +78,12 @@ export default function WishlistPage({ wishlist, setWishlist }) {
       <div className="roster-section">
         <div className="section-header">
           <h2 className="section-title">
-            Open Positions
+            Recruitment by Spec
             <span className="section-count">{wishlist.length}</span>
           </h2>
           {officer && (
             <button className="add-btn" onClick={handleAddEntry}>
-              + Add Position
+              + Add Spec Need
             </button>
           )}
         </div>
@@ -67,15 +94,30 @@ export default function WishlistPage({ wishlist, setWishlist }) {
             <p>No open positions in wishlist.</p>
           </div>
         ) : (
-          <div className="wishlist-grid">
-            {sortedWishlist.map(entry => (
-              <WishlistCard
-                key={entry.id}
-                entry={entry}
-                onEdit={handleEditEntry}
-                onDelete={handleDeleteEntry}
-              />
-            ))}
+          <div className="wishlist-role-board">
+            {roleSections.map(section => {
+              const entries = groupedWishlist[section.key] || [];
+              if (entries.length === 0) return null;
+
+              return (
+                <div key={section.key} className="wishlist-role-column">
+                  <div className="wishlist-role-header">
+                    <span>{section.label}</span>
+                    <span className="wishlist-role-count">{entries.length}</span>
+                  </div>
+                  <div className="wishlist-grid">
+                    {entries.map(entry => (
+                      <WishlistCard
+                        key={entry.id}
+                        entry={entry}
+                        onEdit={handleEditEntry}
+                        onDelete={handleDeleteEntry}
+                      />
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

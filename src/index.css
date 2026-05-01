@@ -413,20 +413,56 @@ main {
 }
 
 /* Wishlist */
+.wishlist-role-board {
+  display: grid;
+  gap: 1rem;
+}
+
+.wishlist-role-column {
+  background: rgba(17, 24, 39, 0.5);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0.9rem;
+}
+
+.wishlist-role-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-secondary);
+  font-weight: 700;
+  font-size: 0.78rem;
+  margin-bottom: 0.75rem;
+}
+
+.wishlist-role-count {
+  min-width: 22px;
+  height: 22px;
+  border-radius: 11px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary-dim);
+  color: var(--primary);
+  font-size: 0.72rem;
+}
+
 .wishlist-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.7rem;
 }
 
 .wishlist-card {
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 10px;
-  padding: 1rem;
+  padding: 0.75rem;
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   transition: all 0.2s;
 }
 
@@ -442,12 +478,19 @@ main {
   font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.2rem;
 }
 
-.wishlist-name {
-  font-size: 1.1rem;
+.wishlist-spec {
+  font-size: 1rem;
   font-weight: 600;
+  line-height: 1.25;
+}
+
+.wishlist-class {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 0.2rem;
 }
 
 .wishlist-priority {
@@ -750,23 +793,17 @@ main {
 /* Wishlist priority arrows */
 .wishlist-card {
   position: relative;
-  padding-top: 2rem;
+  padding-top: 1.7rem;
 }
 
 .wishlist-priority-badge {
   position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
+  top: 0.45rem;
+  right: 0.45rem;
   padding: 0.2rem 0.5rem;
   border-radius: 4px;
   font-size: 0.65rem;
   font-weight: 700;
   text-transform: uppercase;
   color: var(--bg-dark);
-}
-
-.wishlist-notes {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  margin-top: 0.25rem;
 }

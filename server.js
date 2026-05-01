@@ -43,13 +43,18 @@ async function initDatabase() {
     await pool.query(`
       CREATE TABLE IF NOT EXISTS wishlist (
         id TEXT PRIMARY KEY,
-        name TEXT NOT NULL,
+        name TEXT,
         role TEXT,
+        spec TEXT,
         priority TEXT DEFAULT 'medium',
         notes TEXT
       )
     `);
     console.log('Wishlist table ready');
+
+    // Lightweight schema migrations for older deployments
+    await pool.query('ALTER TABLE wishlist ADD COLUMN IF NOT EXISTS spec TEXT');
+    await pool.query('ALTER TABLE wishlist ALTER COLUMN name DROP NOT NULL');
 
     // Check if we have data
     const result = await pool.query('SELECT COUNT(*) FROM roster');
@@ -128,6 +133,7 @@ app.get('/api/data', async (req, res) => {
       id: row.id,
       name: row.name,
       role: row.role,
+      spec: row.spec,
       priority: row.priority,
       notes: row.notes
     }));
@@ -143,32 +149,78 @@ app.get('/api/data', async (req, res) => {
 // PUT data
 app.put('/api/data', async (req, res) => {
   console.log('PUT /api/data', { roster: req.body.roster?.length, wishlist: req.body.wishlist?.length });
+  const client = await pool.connect();
   try {
     const { roster, wishlist } = req.body;
+    const hasRoster = Array.isArray(roster);
+    const hasWishlist = Array.isArray(wishlist);
+    const allowEmpty = req.query.allowEmpty === 'true';
 
-    // Clear and repopulate roster
-    await pool.query('DELETE FROM roster');
-    for (const m of roster || []) {
-      await pool.query(
-        'INSERT INTO roster (id, name, role, spec, notes, group_num) VALUES ($1, $2, $3, $4, $5, $6)',
-        [m.id, m.name, m.role, m.spec, m.notes, m.group || 1]
-      );
+    if (!hasRoster && !hasWishlist) {
+      return res.status(400).json({ error: 'Payload must include roster and/or wishlist arrays' });
     }
 
-    // Clear and repopulate wishlist
-    await pool.query('DELETE FROM wishlist');
-    for (const w of wishlist || []) {
-      await pool.query(
-        'INSERT INTO wishlist (id, name, role, priority, notes) VALUES ($1, $2, $3, $4, $5)',
-        [w.id, w.name, w.role, w.priority, w.notes]
-      );
+    if (hasRoster && hasWishlist && roster.length === 0 && wishlist.length === 0 && !allowEmpty) {
+      return res.status(400).json({ error: 'Refusing to overwrite with empty roster and wishlist' });
     }
 
+    await client.query('BEGIN');
+
+    if (hasRoster) {
+      for (const m of roster) {
+        await client.query(
+          `INSERT INTO roster (id, name, role, spec, notes, group_num)
+           VALUES ($1, $2, $3, $4, $5, $6)
+           ON CONFLICT (id) DO UPDATE SET
+             name = EXCLUDED.name,
+             role = EXCLUDED.role,
+             spec = EXCLUDED.spec,
+             notes = EXCLUDED.notes,
+             group_num = EXCLUDED.group_num`,
+          [m.id, m.name, m.role, m.spec, m.notes, m.group || 1]
+        );
+      }
+
+      const rosterIds = roster.map(m => m.id);
+      if (rosterIds.length > 0) {
+        await client.query('DELETE FROM roster WHERE id <> ALL($1::text[])', [rosterIds]);
+      } else if (allowEmpty) {
+        await client.query('DELETE FROM roster');
+      }
+    }
+
+    if (hasWishlist) {
+      for (const w of wishlist) {
+        await client.query(
+          `INSERT INTO wishlist (id, name, role, spec, priority, notes)
+           VALUES ($1, $2, $3, $4, $5, $6)
+           ON CONFLICT (id) DO UPDATE SET
+             name = EXCLUDED.name,
+             role = EXCLUDED.role,
+             spec = EXCLUDED.spec,
+             priority = EXCLUDED.priority,
+             notes = EXCLUDED.notes`,
+          [w.id, w.name || null, w.role, w.spec || null, w.priority, w.notes || null]
+        );
+      }
+
+      const wishlistIds = wishlist.map(w => w.id);
+      if (wishlistIds.length > 0) {
+        await client.query('DELETE FROM wishlist WHERE id <> ALL($1::text[])', [wishlistIds]);
+      } else if (allowEmpty) {
+        await client.query('DELETE FROM wishlist');
+      }
+    }
+
+    await client.query('COMMIT');
     console.log('Data saved successfully');
     res.json({ success: true });
   } catch (err) {
+    await client.query('ROLLBACK');
     console.error('PUT ERROR:', err.stack || err);
     res.status(500).json({ error: 'Failed to save data' });
+  } finally {
+    client.release();
   }
 });
 
