@@ -25,7 +25,6 @@ export default function WishlistCard({ entry, onEdit, onDelete, showActions = tr
         <div className="wishlist-spec">
           {displayName}
         </div>
-        {className && <div className="wishlist-class">{className}</div>}
       </div>
       {officer && showActions && !locked && (
         <div className="member-actions wishlist-actions">

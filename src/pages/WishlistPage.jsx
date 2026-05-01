@@ -102,7 +102,7 @@ export default function WishlistPage({ roster, wishlist, setWishlist }) {
     <div>
       <div className="page-header">
         <h1 className="page-title">Wunsch-Roster</h1>
-        <p className="page-subtitle">Was uns fuer die 2/4/14-Raid-Comp noch fehlt</p>
+        <p className="page-subtitle">Was uns für die 2/4/14-Raid-Comp noch fehlt</p>
       </div>
 
       <RaidComposition roster={combinedEntries} />

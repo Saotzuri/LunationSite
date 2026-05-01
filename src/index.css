@@ -885,7 +885,7 @@ main {
 .wishlist-lock-badge {
   position: absolute;
   top: 0.45rem;
-  left: 0.45rem;
+  right: 0.45rem;
   padding: 0.18rem 0.45rem;
   border-radius: 4px;
   font-size: 0.62rem;
@@ -916,6 +916,10 @@ main {
 .wishlist-group .wishlist-card {
   padding-top: 1.25rem;
   padding-right: 0.65rem;
+}
+
+.wishlist-group .wishlist-card-locked {
+  padding-top: 1.9rem;
 }
 
 .wishlist-group .wishlist-actions {

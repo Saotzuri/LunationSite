@@ -14,9 +14,9 @@ export default function RaidUtilityOverview({ entries, title = 'Raid Utility Ove
             <h3 className="utility-section-title">{section.title}</h3>
             <div className="utility-section-list">
               {section.metrics.map(metric => (
-                <div key={`${section.title}-${metric}`} className="utility-row">
-                  <span className="utility-value">{stats[metric] || 0}</span>
-                  <span className="utility-label">{metric}</span>
+                <div key={`${section.title}-${metric.key}`} className="utility-row">
+                  <span className="utility-value">{stats[metric.key] || 0}</span>
+                  <span className="utility-label">{metric.label}</span>
                 </div>
               ))}
             </div>
