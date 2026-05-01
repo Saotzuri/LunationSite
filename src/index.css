@@ -841,7 +841,8 @@ main {
 /* Wishlist priority arrows */
 .wishlist-card {
   position: relative;
-  padding-top: 1.7rem;
+  padding-top: 1.85rem;
+  padding-right: 3.1rem;
 }
 
 .wishlist-priority-badge {
@@ -854,4 +855,12 @@ main {
   font-weight: 700;
   text-transform: uppercase;
   color: var(--bg-dark);
+}
+
+.wishlist-actions {
+  position: static !important;
+  opacity: 1 !important;
+  margin-left: 0.65rem;
+  margin-top: 0.8rem;
+  align-self: flex-start;
 }

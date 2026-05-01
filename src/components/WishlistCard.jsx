@@ -36,7 +36,7 @@ export default function WishlistCard({ entry, onEdit, onDelete }) {
         {className && <div className="wishlist-class">{className}</div>}
       </div>
       {officer && (
-        <div className="member-actions" style={{ opacity: 1, position: 'static', marginLeft: '1rem' }}>
+        <div className="member-actions wishlist-actions">
           <button
             className="action-btn"
             onClick={() => onEdit(entry)}
