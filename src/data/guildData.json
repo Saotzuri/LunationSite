@@ -1,0 +1,91 @@
+{
+  "roster": [
+    {
+      "id": "1",
+      "name": "Aeliana",
+      "role": "healer",
+      "spec": "Holy Priest",
+      "wowheadUrl": "https://www.wowhead.com/eu/character/draenor/Aeliana",
+      "notes": "RL"
+    },
+    {
+      "id": "2",
+      "name": "Bloodfang",
+      "role": "tank",
+      "spec": "Blood DK",
+      "wowheadUrl": "https://www.wowhead.com/eu/character/draenor/Bloodfang",
+      "notes": ""
+    },
+    {
+      "id": "3",
+      "name": "Shadowstrike",
+      "role": "melee",
+      "spec": "Assassination Rogue",
+      "wowheadUrl": "https://www.wowhead.com/eu/character/draenor/Shadowstrike",
+      "notes": ""
+    },
+    {
+      "id": "4",
+      "name": "Frostbolt",
+      "role": "ranged",
+      "spec": "Frost Mage",
+      "wowheadUrl": "https://www.wowhead.com/eu/character/draenor/Frostbolt",
+      "notes": ""
+    },
+    {
+      "id": "5",
+      "name": "Stormbringer",
+      "role": "melee",
+      "spec": "Fury Warrior",
+      "wowheadUrl": "https://www.wowhead.com/eu/character/draenor/Stormbringer",
+      "notes": ""
+    },
+    {
+      "id": "6",
+      "name": "Lightweaver",
+      "role": "healer",
+      "spec": "Restoration Druid",
+      "wowheadUrl": "https://www.wowhead.com/eu/character/draenor/Lightweaver",
+      "notes": ""
+    },
+    {
+      "id": "7",
+      "name": "Darkpulse",
+      "role": "ranged",
+      "spec": "Affliction Warlock",
+      "wowheadUrl": "https://www.wowhead.com/eu/character/draenor/Darkpulse",
+      "notes": ""
+    },
+    {
+      "id": "8",
+      "name": "Ironclad",
+      "role": "tank",
+      "spec": "Protection Paladin",
+      "wowheadUrl": "https://www.wowhead.com/eu/character/draenor/Ironclad",
+      "notes": ""
+    }
+  ],
+  "wishlist": [
+    {
+      "id": "1",
+      "name": "1x Shadow Priest",
+      "role": "ranged",
+      "priority": "high",
+      "notes": "Any class with good DPS"
+    },
+    {
+      "id": "2",
+      "name": "1x Devastation Evoker",
+      "role": "ranged",
+      "priority": "medium",
+      "notes": ""
+    },
+    {
+      "id": "3",
+      "name": "1x Boomkin",
+      "role": "ranged",
+      "priority": "low",
+      "notes": "Flex option"
+    }
+  ]
+}
