@@ -12,7 +12,7 @@ export const classColors = {
   'Shaman': '#0070DD',
   'Warlock': '#8788EE',
   'Warrior': '#C69B6D',
-  'Evoker': '#8497ED'
+  'Evoker': '#00b046'
 };
 
 // Map specs to classes
