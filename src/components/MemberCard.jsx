@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { isOfficer } from '../utils/auth';
 import { getClassColor } from '../utils/classColors';
 import { getSpecIcon } from '../utils/classIcons';
@@ -13,6 +14,7 @@ export default function MemberCard({ member, onEdit, onDelete }) {
   const officer = isOfficer();
   const classColor = getClassColor(member.spec);
   const specIcon = getSpecIcon(member.spec);
+  const [iconError, setIconError] = useState(false);
 
   return (
     <div className="member-card">
@@ -23,8 +25,13 @@ export default function MemberCard({ member, onEdit, onDelete }) {
         {roleLabels[member.role]}
       </span>
       <div className="member-header">
-        {specIcon && (
-          <img src={specIcon} alt="" className="spec-icon" />
+        {specIcon && !iconError && (
+          <img
+            src={specIcon}
+            alt=""
+            className="spec-icon"
+            onError={() => setIconError(true)}
+          />
         )}
         <h3 className="member-name" style={classColor ? { color: classColor } : {}}>
           {member.name}

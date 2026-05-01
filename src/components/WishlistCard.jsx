@@ -1,4 +1,6 @@
 import { isOfficer } from '../utils/auth';
+import { getClassColor } from '../utils/classColors';
+import { getSpecIcon } from '../utils/classIcons';
 
 const roleLabels = {
   tank: 'Tank',
@@ -7,26 +9,30 @@ const roleLabels = {
   ranged: 'Ranged DPS'
 };
 
-const priorityArrows = {
-  high: '↑',
-  medium: '─',
-  low: '↓'
+const priorityColors = {
+  high: 'var(--error)',
+  medium: 'var(--warning)',
+  low: 'var(--text-muted)'
 };
 
 export default function WishlistCard({ entry, onEdit, onDelete }) {
   const officer = isOfficer();
+  const classColor = getClassColor(entry.role);
 
   return (
     <div className="wishlist-card">
+      <div className="wishlist-priority-badge" style={{ backgroundColor: priorityColors[entry.priority] }}>
+        {entry.priority}
+      </div>
       <div className="wishlist-info">
-        <div className="wishlist-role" style={{ color: `var(--role-${entry.role})` }}>
+        <div className="wishlist-role" style={{ color: classColor || `var(--role-${entry.role})` }}>
           {roleLabels[entry.role]}
         </div>
         <div className="wishlist-name">{entry.name}</div>
+        {entry.notes && (
+          <div className="wishlist-notes">{entry.notes}</div>
+        )}
       </div>
-      <span className={`wishlist-priority ${entry.priority}`}>
-        {entry.priority} <span className="wishlist-priority-arrow">{priorityArrows[entry.priority]}</span>
-      </span>
       {officer && (
         <div className="member-actions" style={{ opacity: 1, position: 'static', marginLeft: '1rem' }}>
           <button

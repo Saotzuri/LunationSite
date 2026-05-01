@@ -1,55 +1,55 @@
-// WoW Spec Icons - using Blizzard's CDN
-// Format: https://render.worldofwarcraft.com/eu/icons/36/{icon}.png
+// WoW Spec Icons - using World of Warcraft icons API
+// Using 36px icons which are more likely to work
 
 export const specIcons = {
   // Death Knight
-  'Blood DK': 'inv_helm_plate_raiddeathknight_d_01',
-  'Frost DK': 'inv_sword_1h_grimbatol_d_01',
-  'Unholy DK': 'inv_spear_05',
+  'Blood DK': 'ability_deathknight_bloodpresence',
+  'Frost DK': 'ability_deathknight_frostpresence',
+  'Unholy DK': 'ability_deathknight_unholypresence',
   // Demon Hunter
-  'Vengeance DH': 'inv_helm_plate_raiddemonhunter_d_01',
-  'Havoc DH': 'inv_warglaive_01',
+  'Vengeance DH': 'ability_demonhunter_souldebris',
+  'Havoc DH': 'ability_demonhunter_blur',
   // Druid
-  'Bear Druid': 'inv_helm_leather_feraldruid_d_01',
-  'Resto Druid': 'inv_helm_cloth_raidrestodruid_d_01',
-  'Feral Druid': 'inv_helm_leather_feraldruid_d_01',
-  'Balance Druid': 'inv_helm_leather_balance druid_d_01',
+  'Bear Druid': 'ability_racial_bearform',
+  'Resto Druid': 'spell_nature_healingtouch',
+  'Feral Druid': 'ability_druid_catform',
+  'Balance Druid': 'spell_nature_starfall',
   // Hunter
-  'BM Hunter': 'inv_weapon_bow_07',
-  'MM Hunter': 'inv_weapon_bow_07',
-  'Survival Hunter': 'inv_weapon_staff_01',
+  'BM Hunter': 'ability_hunter_beastmastery',
+  'MM Hunter': 'ability_hunter_aimedshoot',
+  'Survival Hunter': 'ability_hunter_expertiserider',
   // Mage
-  'Arcane Mage': 'inv_staff_13',
-  'Fire Mage': 'inv_staff_13',
-  'Frost Mage': 'inv_staff_13',
+  'Arcane Mage': 'spell_arcane_arcanetorrent',
+  'Fire Mage': 'spell_fire_fireball',
+  'Frost Mage': 'spell_frost_frostbolt',
   // Monk
-  'Brewmaster Monk': 'inv_helm_plate_raidmonk_d_01',
-  'Mistweaver Monk': 'inv_helm_cloth_raidmonk_d_01',
-  'Windwalker Monk': 'inv_helm_leather_raidmonk_d_01',
+  'Brewmaster Monk': 'ability_monk_chiwave',
+  'Mistweaver Monk': 'spell_monk_zen_serenity',
+  'Windwalker Monk': 'ability_monk_flyingsnake',
   // Paladin
-  'Prot Paladin': 'inv_helm_plate_raidpaladin_d_01',
-  'Holy Paladin': 'inv_helm_plate_raidpaladin_d_01',
-  'Ret Paladin': 'inv_sword_1h_raidpaladin_d_01',
+  'Prot Paladin': 'ability_paladin_shieldofthetemplar',
+  'Holy Paladin': 'ability_paladin_holyavenger',
+  'Ret Paladin': 'ability_paladin_righteousvengeance',
   // Priest
-  'Holy Priest': 'inv_helm_cloth_raidpriest_d_01',
-  'Disc Priest': 'inv_helm_cloth_raidpriest_d_01',
-  'Shadow Priest': 'inv_helm_cloth_raidpriest_d_01',
+  'Holy Priest': 'spell_holy_guardianspirit',
+  'Disc Priest': 'spell_paladin_divinepurpose',
+  'Shadow Priest': 'spell_shadow_shadowwordpain',
   // Rogue
-  'Assassination Rogue': 'inv_weapon_shortblade_06',
-  'Outlaw Rogue': 'inv_weapon_shortblade_06',
-  'Subtlety Rogue': 'inv_weapon_shortblade_06',
+  'Assassination Rogue': 'ability_rogue_deadlypoison',
+  'Outlaw Rogue': 'ability_rogue_cannonballbarrage',
+  'Subtlety Rogue': 'ability_rogue_shadowdance',
   // Shaman
-  'Resto Shaman': 'inv_helm_mail_raidshaman_d_01',
-  'Enhancement Shaman': 'inv_helm_mail_raidshaman_d_01',
-  'Elemental Shaman': 'inv_helm_mail_raidshaman_d_01',
+  'Resto Shaman': 'spell_nature_magicregen',
+  'Enhancement Shaman': 'spell_shaman_stormearthfire',
+  'Elemental Shaman': 'spell_nature_lightning',
   // Warlock
-  'Affliction Warlock': 'inv_wand_01',
-  'Demonology Warlock': 'inv_wand_01',
-  'Destruction Warlock': 'inv_wand_01',
+  'Affliction Warlock': 'spell_shadow_souldrain',
+  'Demonology Warlock': 'spell_shadow_metamorphosis',
+  'Destruction Warlock': 'spell_fire_hellfire',
   // Warrior
-  'Prot Warrior': 'inv_helm_plate_raidwarrior_d_01',
-  'Arms Warrior': 'inv_sword_2h_001',
-  'Fury Warrior': 'inv_axe_1h_001',
+  'Prot Warrior': 'ability_warrior_defensivestance',
+  'Arms Warrior': 'ability_warrior_savageblow',
+  'Fury Warrior': 'ability_warrior_rampage',
   // Evoker
   'Devastation Evoker': 'inv_devastationevoker_misc',
   'Preservation Evoker': 'inv_preservationevoker_misc',
@@ -59,7 +59,7 @@ export const specIcons = {
 export function getSpecIcon(spec) {
   const icon = specIcons[spec];
   if (icon) {
-    return `https://render.worldofwarcraft.com/eu/icons/56/${icon}.png`;
+    return `https://render.worldofwarcraft.com/eu/icons/36/${icon}.png`;
   }
   return null;
 }

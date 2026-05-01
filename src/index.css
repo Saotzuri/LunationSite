@@ -704,9 +704,23 @@ main {
 /* Wishlist priority arrows */
 .wishlist-card {
   position: relative;
+  padding-top: 2rem;
 }
 
-.wishlist-priority-arrow {
-  margin-left: 0.5rem;
-  font-size: 0.7rem;
+.wishlist-priority-badge {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--bg-dark);
+}
+
+.wishlist-notes {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
 }
