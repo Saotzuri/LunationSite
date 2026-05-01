@@ -69,8 +69,7 @@ export default function MemberForm({ member, onSave, onCancel, isWishlist = fals
     name: '',
     role: 'melee',
     spec: '',
-    notes: '',
-    priority: 'medium'
+    notes: ''
   });
 
   useEffect(() => {
@@ -80,8 +79,7 @@ export default function MemberForm({ member, onSave, onCancel, isWishlist = fals
         name: member.name || '',
         role: member.role || 'melee',
         spec: member.spec || '',
-        notes: member.notes || '',
-        priority: member.priority || 'medium'
+        notes: member.notes || ''
       });
     }
   }, [member]);
@@ -106,8 +104,7 @@ export default function MemberForm({ member, onSave, onCancel, isWishlist = fals
       onSave({
         id: formData.id,
         role: formData.role,
-        spec: formData.spec,
-        priority: formData.priority
+        spec: formData.spec
       });
       return;
     }
@@ -150,22 +147,6 @@ export default function MemberForm({ member, onSave, onCancel, isWishlist = fals
               ))}
             </select>
           </div>
-
-          {isWishlist && (
-            <div className="form-group">
-              <label className="form-label">Priority</label>
-              <select
-                name="priority"
-                value={formData.priority}
-                onChange={handleChange}
-                className="form-select"
-              >
-                <option value="high">High</option>
-                <option value="medium">Medium</option>
-                <option value="low">Low</option>
-              </select>
-            </div>
-          )}
 
           {!isWishlist && (
             <div className="form-group">

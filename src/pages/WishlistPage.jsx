@@ -20,7 +20,6 @@ export default function WishlistPage({ roster, wishlist, setWishlist }) {
     id: `mirror-${member.id}`,
     role: member.role,
     spec: member.spec,
-    priority: 'low',
     group: member.group || 1,
     locked: true
   }));
@@ -51,7 +50,6 @@ export default function WishlistPage({ roster, wishlist, setWishlist }) {
     const normalizedData = {
       role: data.role,
       spec: data.spec,
-      priority: data.priority || 'medium',
       group: data.group || addToGroup || getNextAvailableGroup()
     };
 

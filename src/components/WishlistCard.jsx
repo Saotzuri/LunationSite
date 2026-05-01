@@ -8,12 +8,6 @@ const roleLabels = {
   ranged: 'Ranged DPS'
 };
 
-const priorityColors = {
-  high: 'var(--error)',
-  medium: 'var(--warning)',
-  low: 'var(--text-muted)'
-};
-
 export default function WishlistCard({ entry, onEdit, onDelete, showActions = true, locked = false }) {
   const officer = isOfficer();
   const classColor = getClassColor(entry.spec);
@@ -23,9 +17,6 @@ export default function WishlistCard({ entry, onEdit, onDelete, showActions = tr
 
   return (
     <div className={`wishlist-card ${locked ? 'wishlist-card-locked' : ''}`}>
-      <div className="wishlist-priority-badge" style={{ backgroundColor: priorityColors[entry.priority] }}>
-        {entry.priority}
-      </div>
       {locked && <div className="wishlist-lock-badge">mirrored</div>}
       <div className="wishlist-info">
         <div className="wishlist-role" style={{ color: classColor || `var(--role-${entry.role})` }}>
