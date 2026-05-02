@@ -154,15 +154,11 @@ app.get('/api/data', async (req, res) => {
     }));
 
     // Get the latest modification timestamp
-    const lastModResult = await pool.query(
-      `SELECT GREATEST(
-        COALESCE(MAX(updated_at), '1970-01-01'),
-        COALESCE(MAX(w.updated_at), '1970-01-01')
-      ) as last_modified
-      FROM roster r
-      LEFT JOIN wishlist w ON true`
-    );
-    const lastModified = lastModResult.rows[0]?.last_modified?.getTime() || Date.now();
+    const rosterMax = await pool.query('SELECT MAX(updated_at) as max_ts FROM roster');
+    const wishlistMax = await pool.query('SELECT MAX(updated_at) as max_ts FROM wishlist');
+    const rosterTs = rosterMax.rows[0]?.max_ts?.getTime() || 0;
+    const wishlistTs = wishlistMax.rows[0]?.max_ts?.getTime() || 0;
+    const lastModified = Math.max(rosterTs, wishlistTs) || Date.now();
 
     console.log('Returning roster:', roster.length, 'wishlist:', wishlist.length, 'lastModified:', lastModified);
     res.json({ roster, wishlist, lastModified });
@@ -192,14 +188,11 @@ app.put('/api/data', async (req, res) => {
 
     // Check for conflicts if client sent a known version
     if (knownVersion) {
-      const lastModResult = await client.query(
-        `SELECT MAX(updated_at) as last_modified FROM (
-          SELECT updated_at FROM roster ORDER BY updated_at DESC LIMIT 1
-          UNION ALL
-          SELECT updated_at FROM wishlist ORDER BY updated_at DESC LIMIT 1
-        ) AS combined`
-      );
-      const serverVersion = lastModResult.rows[0]?.last_modified?.getTime() || 0;
+      const rosterMax = await client.query('SELECT MAX(updated_at) as max_ts FROM roster');
+      const wishlistMax = await client.query('SELECT MAX(updated_at) as max_ts FROM wishlist');
+      const rosterTs = rosterMax.rows[0]?.max_ts?.getTime() || 0;
+      const wishlistTs = wishlistMax.rows[0]?.max_ts?.getTime() || 0;
+      const serverVersion = Math.max(rosterTs, wishlistTs);
 
       if (serverVersion > knownVersion) {
         console.log('Conflict detected! Server version:', serverVersion, 'Client version:', knownVersion);
@@ -295,14 +288,11 @@ app.put('/api/data', async (req, res) => {
     console.log('Data saved successfully');
 
     // Get the new lastModified timestamp
-    const lastModResult = await pool.query(
-      `SELECT MAX(updated_at) as last_modified FROM (
-        SELECT updated_at FROM roster ORDER BY updated_at DESC LIMIT 1
-        UNION ALL
-        SELECT updated_at FROM wishlist ORDER BY updated_at DESC LIMIT 1
-      ) AS combined`
-    );
-    const lastModified = lastModResult.rows[0]?.last_modified?.getTime() || Date.now();
+    const rosterMax = await pool.query('SELECT MAX(updated_at) as max_ts FROM roster');
+    const wishlistMax = await pool.query('SELECT MAX(updated_at) as max_ts FROM wishlist');
+    const rosterTs = rosterMax.rows[0]?.max_ts?.getTime() || 0;
+    const wishlistTs = wishlistMax.rows[0]?.max_ts?.getTime() || 0;
+    const lastModified = Math.max(rosterTs, wishlistTs) || Date.now();
 
     res.json({ success: true, lastModified });
   } catch (err) {
