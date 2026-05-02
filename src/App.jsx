@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import LoginModal from './components/LoginModal';
@@ -13,8 +13,10 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [hasLoadedFromServer, setHasLoadedFromServer] = useState(false);
   const [loadError, setLoadError] = useState(false);
+  const [conflictError, setConflictError] = useState(null);
   const [roster, setRoster] = useState([]);
   const [wishlist, setWishlist] = useState([]);
+  const lastKnownVersion = useRef(null);
 
   console.log('App state - roster:', roster?.length, 'wishlist:', wishlist?.length);
 
@@ -27,6 +29,7 @@ function App() {
         console.log('Loaded data:', data);
         setRoster(data.roster || []);
         setWishlist(data.wishlist || []);
+        lastKnownVersion.current = data.lastModified || Date.now();
         setLoadError(false);
         setHasLoadedFromServer(true);
         setLoading(false);
@@ -40,7 +43,7 @@ function App() {
 
   // Save data function
   const saveData = useCallback(async (newRoster, newWishlist) => {
-    console.log('saveData called:', { roster: newRoster?.length, wishlist: newWishlist?.length });
+    console.log('saveData called:', { roster: newRoster?.length, wishlist: newWishlist?.length, version: lastKnownVersion.current });
     if (!newRoster || !newWishlist) {
       console.error('saveData: missing data', { newRoster, newWishlist });
       return;
@@ -49,10 +52,25 @@ function App() {
       const res = await fetch(`${API_URL}/api/data`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ roster: newRoster, wishlist: newWishlist })
+        body: JSON.stringify({
+          roster: newRoster,
+          wishlist: newWishlist,
+          knownVersion: lastKnownVersion.current
+        })
       });
       const result = await res.json();
       console.log('Save result:', result);
+
+      if (result.conflict) {
+        console.warn('Data conflict detected! Another user has saved changes.');
+        setConflictError('Ein anderer Offizier hat gerade Änderungen gespeichert. Deine Änderungen wurden nicht gespeichert.');
+        setRoster(result.currentRoster);
+        setWishlist(result.currentWishlist);
+        lastKnownVersion.current = result.lastModified;
+        setTimeout(() => setConflictError(null), 8000);
+      } else if (result.success) {
+        lastKnownVersion.current = result.lastModified;
+      }
     } catch (err) {
       console.error('Save error:', err);
     }
@@ -118,6 +136,11 @@ function App() {
   return (
     <BrowserRouter>
       <Navbar onLoginClick={() => setShowLogin(true)} />
+      {conflictError && (
+        <div className="conflict-alert">
+          {conflictError}
+        </div>
+      )}
       <main>
         <Routes>
           <Route

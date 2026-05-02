@@ -937,3 +937,25 @@ main {
     grid-template-columns: 1fr;
   }
 }
+
+/* Conflict Alert */
+.conflict-alert {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid var(--error);
+  color: #fca5a5;
+  padding: 12px 20px;
+  text-align: center;
+  font-weight: 500;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}

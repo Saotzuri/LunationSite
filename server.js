@@ -61,6 +61,12 @@ async function initDatabase() {
     await pool.query('ALTER TABLE wishlist ADD COLUMN IF NOT EXISTS position INTEGER DEFAULT 0');
     await pool.query('ALTER TABLE roster ADD COLUMN IF NOT EXISTS position INTEGER DEFAULT 0');
     await pool.query('ALTER TABLE wishlist ALTER COLUMN name DROP NOT NULL');
+    await pool.query('ALTER TABLE roster ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT NOW()');
+    await pool.query('ALTER TABLE wishlist ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT NOW()');
+
+    // Initialize updated_at for existing rows that don't have it
+    await pool.query('UPDATE roster SET updated_at = NOW() WHERE updated_at IS NULL');
+    await pool.query('UPDATE wishlist SET updated_at = NOW() WHERE updated_at IS NULL');
 
     // Check if we have data
     const result = await pool.query('SELECT COUNT(*) FROM roster');
@@ -147,8 +153,19 @@ app.get('/api/data', async (req, res) => {
       position: row.position || 0
     }));
 
-    console.log('Returning roster:', roster.length, 'wishlist:', wishlist.length);
-    res.json({ roster, wishlist });
+    // Get the latest modification timestamp
+    const lastModResult = await pool.query(
+      `SELECT GREATEST(
+        COALESCE(MAX(updated_at), '1970-01-01'),
+        COALESCE(MAX(w.updated_at), '1970-01-01')
+      ) as last_modified
+      FROM roster r
+      LEFT JOIN wishlist w ON true`
+    );
+    const lastModified = lastModResult.rows[0]?.last_modified?.getTime() || Date.now();
+
+    console.log('Returning roster:', roster.length, 'wishlist:', wishlist.length, 'lastModified:', lastModified);
+    res.json({ roster, wishlist, lastModified });
   } catch (err) {
     console.error('GET ERROR:', err.stack || err);
     res.status(500).json({ error: 'Failed to read data' });
@@ -157,10 +174,10 @@ app.get('/api/data', async (req, res) => {
 
 // PUT data
 app.put('/api/data', async (req, res) => {
-  console.log('PUT /api/data', { roster: req.body.roster?.length, wishlist: req.body.wishlist?.length });
+  console.log('PUT /api/data', { roster: req.body.roster?.length, wishlist: req.body.wishlist?.length, knownVersion: req.body.knownVersion });
   const client = await pool.connect();
   try {
-    const { roster, wishlist } = req.body;
+    const { roster, wishlist, knownVersion } = req.body;
     const hasRoster = Array.isArray(roster);
     const hasWishlist = Array.isArray(wishlist);
     const allowEmpty = req.query.allowEmpty === 'true';
@@ -173,20 +190,69 @@ app.put('/api/data', async (req, res) => {
       return res.status(400).json({ error: 'Refusing to overwrite with empty roster and wishlist' });
     }
 
+    // Check for conflicts if client sent a known version
+    if (knownVersion) {
+      const lastModResult = await client.query(
+        `SELECT MAX(updated_at) as last_modified FROM (
+          SELECT updated_at FROM roster ORDER BY updated_at DESC LIMIT 1
+          UNION ALL
+          SELECT updated_at FROM wishlist ORDER BY updated_at DESC LIMIT 1
+        ) AS combined`
+      );
+      const serverVersion = lastModResult.rows[0]?.last_modified?.getTime() || 0;
+
+      if (serverVersion > knownVersion) {
+        console.log('Conflict detected! Server version:', serverVersion, 'Client version:', knownVersion);
+
+        // Fetch current data to return to client
+        const rosterResult = await client.query('SELECT * FROM roster ORDER BY group_num, position, name');
+        const wishlistResult = await client.query('SELECT * FROM wishlist ORDER BY group_num, position, CASE priority WHEN \'high\' THEN 1 WHEN \'medium\' THEN 2 WHEN \'low\' THEN 3 END');
+
+        const currentRoster = rosterResult.rows.map(row => ({
+          id: row.id,
+          name: row.name,
+          role: row.role,
+          spec: row.spec,
+          notes: row.notes,
+          group: row.group_num,
+          position: row.position || 0
+        }));
+
+        const currentWishlist = wishlistResult.rows.map(row => ({
+          id: row.id,
+          name: row.name,
+          role: row.role,
+          spec: row.spec,
+          priority: row.priority,
+          notes: row.notes,
+          group: row.group_num,
+          position: row.position || 0
+        }));
+
+        return res.json({
+          conflict: true,
+          currentRoster,
+          currentWishlist,
+          lastModified: serverVersion
+        });
+      }
+    }
+
     await client.query('BEGIN');
 
     if (hasRoster) {
       for (const m of roster) {
         await client.query(
-          `INSERT INTO roster (id, name, role, spec, notes, group_num, position)
-           VALUES ($1, $2, $3, $4, $5, $6, $7)
+          `INSERT INTO roster (id, name, role, spec, notes, group_num, position, updated_at)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
            ON CONFLICT (id) DO UPDATE SET
              name = EXCLUDED.name,
              role = EXCLUDED.role,
              spec = EXCLUDED.spec,
              notes = EXCLUDED.notes,
              group_num = EXCLUDED.group_num,
-             position = EXCLUDED.position`,
+             position = EXCLUDED.position,
+             updated_at = NOW()`,
           [m.id, m.name, m.role, m.spec, m.notes, m.group || 1, m.position || 0]
         );
       }
@@ -202,8 +268,8 @@ app.put('/api/data', async (req, res) => {
     if (hasWishlist) {
       for (const w of wishlist) {
         await client.query(
-          `INSERT INTO wishlist (id, name, role, spec, priority, notes, group_num, position)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+          `INSERT INTO wishlist (id, name, role, spec, priority, notes, group_num, position, updated_at)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
            ON CONFLICT (id) DO UPDATE SET
              name = EXCLUDED.name,
              role = EXCLUDED.role,
@@ -211,7 +277,8 @@ app.put('/api/data', async (req, res) => {
              priority = EXCLUDED.priority,
              notes = EXCLUDED.notes,
              group_num = EXCLUDED.group_num,
-             position = EXCLUDED.position`,
+             position = EXCLUDED.position,
+             updated_at = NOW()`,
           [w.id, w.name || null, w.role, w.spec || null, w.priority, w.notes || null, w.group || 1, w.position || 0]
         );
       }
@@ -226,7 +293,18 @@ app.put('/api/data', async (req, res) => {
 
     await client.query('COMMIT');
     console.log('Data saved successfully');
-    res.json({ success: true });
+
+    // Get the new lastModified timestamp
+    const lastModResult = await pool.query(
+      `SELECT MAX(updated_at) as last_modified FROM (
+        SELECT updated_at FROM roster ORDER BY updated_at DESC LIMIT 1
+        UNION ALL
+        SELECT updated_at FROM wishlist ORDER BY updated_at DESC LIMIT 1
+      ) AS combined`
+    );
+    const lastModified = lastModResult.rows[0]?.last_modified?.getTime() || Date.now();
+
+    res.json({ success: true, lastModified });
   } catch (err) {
     await client.query('ROLLBACK');
     console.error('PUT ERROR:', err.stack || err);
