@@ -92,7 +92,7 @@ const CLASS_BUFF_SOURCES = {
   Priest: { buff_stamina: 1 }
 };
 
-const SPEC_UTILITY = {
+export const SPEC_UTILITY = {
   // Death Knight
   'Blood DK': { cc_taunts: 1, personal_mitigation: 2, other_short_interrupts: 1, other_battle_res: 1, cc_slows: 1, other_slows: 1 },
   'Frost DK': { personal_mitigation: 1, personal_movement: 1, other_short_interrupts: 1, other_battle_res: 1, cc_slows: 1, other_slows: 1 },
@@ -170,6 +170,16 @@ function createBaseStats() {
   return stats;
 }
 
+function createBaseStatsWithSources() {
+  const stats = {};
+  UTILITY_SECTIONS.forEach(section => {
+    section.metrics.forEach(metric => {
+      if (stats[metric.key] === undefined) stats[metric.key] = { count: 0, sources: [] };
+    });
+  });
+  return stats;
+}
+
 function addValues(stats, values) {
   Object.entries(values).forEach(([metric, amount]) => {
     if (stats[metric] === undefined) {
@@ -179,7 +189,21 @@ function addValues(stats, values) {
   });
 }
 
-export function buildRaidUtilityStats(entries) {
+function addValuesWithSources(stats, values, source) {
+  Object.entries(values).forEach(([metric, amount]) => {
+    if (stats[metric] === undefined) {
+      stats[metric] = { count: 0, sources: [] };
+    }
+    if (amount !== 0) {
+      stats[metric].count += amount;
+      if (!stats[metric].sources.includes(source)) {
+        stats[metric].sources.push(source);
+      }
+    }
+  });
+}
+
+export function buildRaidUtilityStats(entries, customUtility = {}) {
   const stats = createBaseStats();
 
   entries.forEach(entry => {
@@ -192,7 +216,37 @@ export function buildRaidUtilityStats(entries) {
     if (className) {
       addValues(stats, CLASS_BUFF_SOURCES[className] || {});
     }
-    addValues(stats, SPEC_UTILITY[entry.spec] || {});
+    const customSpecConfig = customUtility[entry.spec];
+    if (customSpecConfig) {
+      addValues(stats, customSpecConfig);
+    } else {
+      addValues(stats, SPEC_UTILITY[entry.spec] || {});
+    }
+  });
+
+  return stats;
+}
+
+export function buildRaidUtilityStatsWithSources(entries, customUtility = {}) {
+  const stats = createBaseStatsWithSources();
+
+  entries.forEach(entry => {
+    if (entry.role === 'melee') stats.role_melee.count += 1;
+    if (entry.role === 'ranged') stats.role_ranged.count += 1;
+    if (entry.role === 'healer') stats.role_healers.count += 1;
+    if (entry.role === 'tank') stats.role_tanks.count += 1;
+
+    const className = getClassFromSpec(entry.spec);
+    if (className) {
+      addValuesWithSources(stats, CLASS_BUFF_SOURCES[className] || {}, entry.spec);
+    }
+
+    const customSpecConfig = customUtility[entry.spec];
+    if (customSpecConfig) {
+      addValuesWithSources(stats, customSpecConfig, entry.spec);
+    } else {
+      addValuesWithSources(stats, SPEC_UTILITY[entry.spec] || {}, entry.spec);
+    }
   });
 
   return stats;

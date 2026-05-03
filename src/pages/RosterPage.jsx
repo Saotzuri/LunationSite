@@ -3,12 +3,14 @@ import { isOfficer } from '../utils/auth';
 import RaidComposition from '../components/RaidComposition';
 import RaidGroups from '../components/RaidGroups';
 import RaidUtilityOverview from '../components/RaidUtilityOverview';
+import SpecUtilityConfig from '../components/SpecUtilityConfig';
 import MemberForm from '../components/MemberForm';
 
-export default function RosterPage({ roster, setRoster }) {
+export default function RosterPage({ roster, setRoster, specUtilityConfig, updateSpecUtilityConfig }) {
   const [showForm, setShowForm] = useState(false);
   const [editingMember, setEditingMember] = useState(null);
   const [addToGroup, setAddToGroup] = useState(null);
+  const [showConfig, setShowConfig] = useState(false);
   const officer = isOfficer();
 
   const handleAddMember = (groupId = null) => {
@@ -71,7 +73,12 @@ export default function RosterPage({ roster, setRoster }) {
       </div>
 
       <RaidComposition roster={roster} />
-      <RaidUtilityOverview entries={roster} title="Raid Buffs & Utility" />
+      <RaidUtilityOverview entries={roster} title="Raid Buffs & Utility" specUtilityConfig={specUtilityConfig} />
+      {officer && (
+        <button className="btn btn-secondary" onClick={() => setShowConfig(true)} style={{ marginTop: '1rem' }}>
+          Configure Spec Utility
+        </button>
+      )}
 
       <div className="roster-section">
         <div className="section-header">
@@ -109,6 +116,8 @@ export default function RosterPage({ roster, setRoster }) {
           onCancel={handleCancel}
         />
       )}
+
+      <SpecUtilityConfig isOpen={showConfig} onClose={() => setShowConfig(false)} specUtilityConfig={specUtilityConfig} updateSpecUtilityConfig={updateSpecUtilityConfig} />
     </div>
   );
 }

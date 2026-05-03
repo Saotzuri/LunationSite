@@ -291,6 +291,40 @@ main {
   display: flex;
   gap: 0.5rem;
   align-items: baseline;
+  position: relative;
+  cursor: default;
+}
+
+.utility-row:hover .utility-value {
+  color: var(--primary);
+  text-shadow: 0 0 8px var(--primary);
+}
+
+.utility-tooltip {
+  position: absolute;
+  left: 100%;
+  top: 0;
+  margin-left: 0.5rem;
+  background: var(--bg-dark);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  z-index: 100;
+  min-width: 150px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.utility-tooltip-title {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.25rem;
+  font-weight: 600;
+}
+
+.utility-tooltip-source {
+  font-size: 0.8rem;
+  color: var(--text-primary);
+  padding: 0.1rem 0;
 }
 
 .utility-value {
@@ -645,6 +679,146 @@ main {
 
 .btn-danger:hover {
   background: #dc2626;
+}
+
+/* Spec Utility Config Modal */
+.spec-utility-modal {
+  max-width: 700px;
+  max-height: 80vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.modal-header h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+.modal-close:hover {
+  color: var(--text-primary);
+}
+
+.spec-utility-content {
+  display: flex;
+  gap: 1.5rem;
+  flex: 1;
+  overflow: hidden;
+}
+
+.spec-utility-sidebar {
+  width: 180px;
+  flex-shrink: 0;
+}
+
+.spec-utility-actions {
+  margin-top: 1rem;
+}
+
+.spec-utility-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.spec-utility-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-bottom: 1rem;
+}
+
+.spec-utility-tab {
+  background: var(--bg-dark);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.4rem 0.6rem;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.spec-utility-tab:hover {
+  border-color: var(--text-secondary);
+}
+
+.spec-utility-tab.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--bg-dark);
+}
+
+.spec-utility-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+.spec-utility-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: var(--bg-dark);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.spec-utility-checkbox:hover {
+  border-color: var(--text-secondary);
+}
+
+.spec-utility-checkbox.active {
+  border-color: var(--primary);
+  background: rgba(0, 225, 255, 0.1);
+}
+
+.spec-utility-checkbox input {
+  accent-color: var(--primary);
+}
+
+.checkbox-label {
+  flex: 1;
+  font-size: 0.8rem;
+  color: var(--text-primary);
+}
+
+.checkbox-default {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
 }
 
 /* Footer */

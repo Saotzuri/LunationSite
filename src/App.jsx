@@ -16,6 +16,7 @@ function App() {
   const [conflictError, setConflictError] = useState(null);
   const [roster, setRoster] = useState([]);
   const [wishlist, setWishlist] = useState([]);
+  const [specUtilityConfig, setSpecUtilityConfig] = useState({});
   const lastKnownVersion = useRef(null);
 
   console.log('App state - roster:', roster?.length, 'wishlist:', wishlist?.length);
@@ -29,6 +30,7 @@ function App() {
         console.log('Loaded data:', data);
         setRoster(data.roster || []);
         setWishlist(data.wishlist || []);
+        setSpecUtilityConfig(data.specUtilityConfig || {});
         lastKnownVersion.current = data.lastModified || Date.now();
         setLoadError(false);
         setHasLoadedFromServer(true);
@@ -42,12 +44,13 @@ function App() {
   }, []);
 
   // Save data function
-  const saveData = useCallback(async (newRoster, newWishlist) => {
+  const saveData = useCallback(async (newRoster, newWishlist, newSpecUtilityConfig) => {
     console.log('saveData called:', { roster: newRoster?.length, wishlist: newWishlist?.length, version: lastKnownVersion.current });
     if (!newRoster || !newWishlist) {
       console.error('saveData: missing data', { newRoster, newWishlist });
       return;
     }
+    const configToSave = newSpecUtilityConfig !== undefined ? newSpecUtilityConfig : specUtilityConfig;
     try {
       const res = await fetch(`${API_URL}/api/data`, {
         method: 'PUT',
@@ -55,6 +58,7 @@ function App() {
         body: JSON.stringify({
           roster: newRoster,
           wishlist: newWishlist,
+          specUtilityConfig: configToSave,
           knownVersion: lastKnownVersion.current
         })
       });
@@ -117,7 +121,13 @@ function App() {
       console.log('Auto-saving due to state change');
       saveData(roster, wishlist);
     }
-  }, [roster, wishlist, loading, hasLoadedFromServer, loadError, saveData]);
+  }, [loading, hasLoadedFromServer, loadError, roster, wishlist, saveData]);
+
+  // Function to update spec utility config
+  const updateSpecUtilityConfig = useCallback((newConfig) => {
+    setSpecUtilityConfig(newConfig);
+    saveData(roster, wishlist, newConfig);
+  }, [roster, wishlist, saveData]);
 
   if (loading) {
     return (
@@ -145,11 +155,11 @@ function App() {
         <Routes>
           <Route
             path="/"
-            element={<RosterPage roster={roster} setRoster={handleSetRoster} />}
+            element={<RosterPage roster={roster} setRoster={handleSetRoster} specUtilityConfig={specUtilityConfig} updateSpecUtilityConfig={updateSpecUtilityConfig} />}
           />
           <Route
             path="/wishlist"
-            element={<WishlistPage roster={roster} wishlist={wishlist} setWishlist={handleSetWishlist} />}
+            element={<WishlistPage roster={roster} wishlist={wishlist} setWishlist={handleSetWishlist} specUtilityConfig={specUtilityConfig} updateSpecUtilityConfig={updateSpecUtilityConfig} />}
           />
         </Routes>
       </main>

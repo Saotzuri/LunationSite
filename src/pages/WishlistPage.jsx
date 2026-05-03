@@ -2,13 +2,15 @@ import { useState } from 'react';
 import { isOfficer } from '../utils/auth';
 import RaidComposition from '../components/RaidComposition';
 import RaidUtilityOverview from '../components/RaidUtilityOverview';
+import SpecUtilityConfig from '../components/SpecUtilityConfig';
 import WishlistGroups from '../components/WishlistGroups';
 import MemberForm from '../components/MemberForm';
 
-export default function WishlistPage({ roster, wishlist, setWishlist }) {
+export default function WishlistPage({ roster, wishlist, setWishlist, specUtilityConfig, updateSpecUtilityConfig }) {
   const [showForm, setShowForm] = useState(false);
   const [editingEntry, setEditingEntry] = useState(null);
   const [addToGroup, setAddToGroup] = useState(null);
+  const [showConfig, setShowConfig] = useState(false);
   const officer = isOfficer();
   const mirroredRosterEntries = roster.map(member => ({
     id: `mirror-${member.id}`,
@@ -81,7 +83,12 @@ export default function WishlistPage({ roster, wishlist, setWishlist }) {
       </div>
 
       <RaidComposition roster={combinedEntries} />
-      <RaidUtilityOverview entries={combinedEntries} title="Wunsch-Roster Buffs & Utility" />
+      <RaidUtilityOverview entries={combinedEntries} title="Wunsch-Roster Buffs & Utility" specUtilityConfig={specUtilityConfig} />
+      {officer && (
+        <button className="btn btn-secondary" onClick={() => setShowConfig(true)} style={{ marginTop: '1rem' }}>
+          Configure Spec Utility
+        </button>
+      )}
 
       <div className="roster-section">
         <div className="section-header">
@@ -125,6 +132,8 @@ export default function WishlistPage({ roster, wishlist, setWishlist }) {
           }}
         />
       )}
+
+      <SpecUtilityConfig isOpen={showConfig} onClose={() => setShowConfig(false)} specUtilityConfig={specUtilityConfig} updateSpecUtilityConfig={updateSpecUtilityConfig} />
     </div>
   );
 }

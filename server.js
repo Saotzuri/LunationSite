@@ -55,6 +55,14 @@ async function initDatabase() {
     `);
     console.log('Wishlist table ready');
 
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS config (
+        key TEXT PRIMARY KEY,
+        value JSONB
+      )
+    `);
+    console.log('Config table ready');
+
     // Lightweight schema migrations for older deployments
     await pool.query('ALTER TABLE wishlist ADD COLUMN IF NOT EXISTS spec TEXT');
     await pool.query('ALTER TABLE wishlist ADD COLUMN IF NOT EXISTS group_num INTEGER DEFAULT 1');
@@ -160,8 +168,12 @@ app.get('/api/data', async (req, res) => {
     const wishlistTs = wishlistMax.rows[0]?.max_ts?.getTime() || 0;
     const lastModified = Math.max(rosterTs, wishlistTs) || Date.now();
 
+    // Get spec utility config
+    const configResult = await pool.query("SELECT value FROM config WHERE key = 'specUtilityConfig'");
+    const specUtilityConfig = configResult.rows[0]?.value || {};
+
     console.log('Returning roster:', roster.length, 'wishlist:', wishlist.length, 'lastModified:', lastModified);
-    res.json({ roster, wishlist, lastModified });
+    res.json({ roster, wishlist, lastModified, specUtilityConfig });
   } catch (err) {
     console.error('GET ERROR:', err.stack || err);
     res.status(500).json({ error: 'Failed to read data' });
@@ -173,10 +185,18 @@ app.put('/api/data', async (req, res) => {
   console.log('PUT /api/data', { roster: req.body.roster?.length, wishlist: req.body.wishlist?.length, knownVersion: req.body.knownVersion });
   const client = await pool.connect();
   try {
-    const { roster, wishlist, knownVersion } = req.body;
+    const { roster, wishlist, knownVersion, specUtilityConfig } = req.body;
     const hasRoster = Array.isArray(roster);
     const hasWishlist = Array.isArray(wishlist);
     const allowEmpty = req.query.allowEmpty === 'true';
+
+    // Save spec utility config if provided
+    if (specUtilityConfig !== undefined) {
+      await pool.query(
+        "INSERT INTO config (key, value) VALUES ('specUtilityConfig', $1) ON CONFLICT (key) DO UPDATE SET value = $1",
+        [JSON.stringify(specUtilityConfig)]
+      );
+    }
 
     if (!hasRoster && !hasWishlist) {
       return res.status(400).json({ error: 'Payload must include roster and/or wishlist arrays' });
