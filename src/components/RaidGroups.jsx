@@ -22,6 +22,17 @@ import MemberCard from './MemberCard';
 
 const GROUP_COUNT = 8;
 
+const GROUP_NAMES = {
+  5: 'Need',
+  6: 'Flex',
+  7: 'Bench',
+  8: 'Bench'
+};
+
+function getGroupName(groupId) {
+  return GROUP_NAMES[groupId] || `Gruppe ${groupId}`;
+}
+
 function SortableMember({ member, onEdit, onDelete, disabled = false }) {
   const {
     attributes,
@@ -55,7 +66,7 @@ function GroupColumn({ groupId, members, onEdit, onDelete, onAdd, isOver, canMan
   return (
     <div className={`raid-group ${isOver ? 'drag-over' : ''}`}>
       <div className="group-header">
-        <span className="group-name">Gruppe {groupId}</span>
+        <span className="group-name">{getGroupName(groupId)}</span>
         <span className="group-count">{members.length}/5</span>
       </div>
       <SortableContext

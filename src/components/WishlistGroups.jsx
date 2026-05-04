@@ -22,6 +22,17 @@ import WishlistCard from './WishlistCard';
 
 const GROUP_COUNT = 8;
 
+const GROUP_NAMES = {
+  5: 'Need',
+  6: 'Flex',
+  7: 'Bench',
+  8: 'Bench'
+};
+
+function getGroupName(groupId) {
+  return GROUP_NAMES[groupId] || `Wunsch Gruppe ${groupId}`;
+}
+
 function SortableWishlistEntry({ entry, onEdit, onDelete, disabled = false }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: entry.id,
@@ -48,7 +59,7 @@ function GroupColumn({ groupId, entries, onEdit, onDelete, onAdd, isOver, canMan
   return (
     <div className={`raid-group wishlist-group ${isOver ? 'drag-over' : ''}`}>
       <div className="group-header">
-        <span className="group-name">Wunsch Gruppe {groupId}</span>
+        <span className="group-name">{getGroupName(groupId)}</span>
         <span className="group-count">{entries.length}/5</span>
       </div>
       <SortableContext
