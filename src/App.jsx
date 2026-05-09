@@ -16,6 +16,7 @@ function App() {
   const [conflictError, setConflictError] = useState(null);
   const [roster, setRoster] = useState([]);
   const [wishlist, setWishlist] = useState([]);
+  const [recruits, setRecruits] = useState([]);
   const [specUtilityConfig, setSpecUtilityConfig] = useState({});
   const lastKnownVersion = useRef(null);
 
@@ -30,6 +31,7 @@ function App() {
         console.log('Loaded data:', data);
         setRoster(data.roster || []);
         setWishlist(data.wishlist || []);
+        setRecruits(data.recruits || []);
         setSpecUtilityConfig(data.specUtilityConfig || {});
         lastKnownVersion.current = data.lastModified || Date.now();
         setLoadError(false);
@@ -44,12 +46,13 @@ function App() {
   }, []);
 
   // Save data function
-  const saveData = useCallback(async (newRoster, newWishlist, newSpecUtilityConfig) => {
-    console.log('saveData called:', { roster: newRoster?.length, wishlist: newWishlist?.length, version: lastKnownVersion.current });
+  const saveData = useCallback(async (newRoster, newWishlist, newRecruits, newSpecUtilityConfig) => {
+    console.log('saveData called:', { roster: newRoster?.length, wishlist: newWishlist?.length, recruits: newRecruits?.length, version: lastKnownVersion.current });
     if (!newRoster || !newWishlist) {
       console.error('saveData: missing data', { newRoster, newWishlist });
       return;
     }
+    const recruitsToSave = newRecruits !== undefined ? newRecruits : recruits;
     const configToSave = newSpecUtilityConfig !== undefined ? newSpecUtilityConfig : specUtilityConfig;
     try {
       const res = await fetch(`${API_URL}/api/data`, {
@@ -58,6 +61,7 @@ function App() {
         body: JSON.stringify({
           roster: newRoster,
           wishlist: newWishlist,
+          recruits: recruitsToSave,
           specUtilityConfig: configToSave,
           knownVersion: lastKnownVersion.current
         })
@@ -115,19 +119,35 @@ function App() {
     }
   }, []);
 
+  // Handle setRecruits
+  const handleSetRecruits = useCallback((newRecruitsOrUpdater) => {
+    console.log('handleSetRecruits called, type:', typeof newRecruitsOrUpdater);
+
+    if (typeof newRecruitsOrUpdater === 'function') {
+      setRecruits(prevRecruits => {
+        const newRecruits = newRecruitsOrUpdater(prevRecruits);
+        console.log('Updater produced recruits with', newRecruits?.length, 'entries');
+        return newRecruits;
+      });
+    } else {
+      console.log('Direct recruits update with', newRecruitsOrUpdater?.length, 'entries');
+      setRecruits(newRecruitsOrUpdater);
+    }
+  }, []);
+
   // Save only after successful initial load to prevent accidental wipes on load errors
   useEffect(() => {
     if (!loading && hasLoadedFromServer && !loadError) {
       console.log('Auto-saving due to state change');
-      saveData(roster, wishlist);
+      saveData(roster, wishlist, recruits);
     }
-  }, [loading, hasLoadedFromServer, loadError, roster, wishlist, saveData]);
+  }, [loading, hasLoadedFromServer, loadError, roster, wishlist, recruits, saveData]);
 
   // Function to update spec utility config
   const updateSpecUtilityConfig = useCallback((newConfig) => {
     setSpecUtilityConfig(newConfig);
-    saveData(roster, wishlist, newConfig);
-  }, [roster, wishlist, saveData]);
+    saveData(roster, wishlist, recruits, newConfig);
+  }, [roster, wishlist, recruits, saveData]);
 
   if (loading) {
     return (
@@ -159,7 +179,7 @@ function App() {
           />
           <Route
             path="/wishlist"
-            element={<WishlistPage roster={roster} wishlist={wishlist} setWishlist={handleSetWishlist} specUtilityConfig={specUtilityConfig} updateSpecUtilityConfig={updateSpecUtilityConfig} />}
+            element={<WishlistPage roster={roster} wishlist={wishlist} setWishlist={handleSetWishlist} recruits={recruits} setRecruits={handleSetRecruits} specUtilityConfig={specUtilityConfig} updateSpecUtilityConfig={updateSpecUtilityConfig} />}
           />
         </Routes>
       </main>

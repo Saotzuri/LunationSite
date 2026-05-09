@@ -843,6 +843,93 @@ main {
   opacity: 0.5;
 }
 
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0;
+}
+
+.tab {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1rem;
+  padding: 0.75rem 1.5rem;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.tab:hover {
+  color: var(--text);
+}
+
+.tab.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+
+/* Recruitment Tracker */
+.recruitment-tracker {
+  margin-top: 1rem;
+}
+
+.recruits-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.recruit-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem;
+  gap: 1rem;
+}
+
+.recruit-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-width: 200px;
+}
+
+.recruit-name {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.recruit-spec {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.recruit-details {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+}
+
+.recruit-notes {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  flex: 1;
+}
+
+.recruit-date {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .page-title {

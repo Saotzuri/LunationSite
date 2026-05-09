@@ -56,6 +56,17 @@ async function initDatabase() {
     console.log('Wishlist table ready');
 
     await pool.query(`
+      CREATE TABLE IF NOT EXISTS recruits (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        spec TEXT,
+        notes TEXT,
+        recruited_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    console.log('Recruits table ready');
+
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS config (
         key TEXT PRIMARY KEY,
         value JSONB
@@ -139,6 +150,7 @@ app.get('/api/data', async (req, res) => {
   try {
     const rosterResult = await pool.query('SELECT * FROM roster ORDER BY group_num, position, name');
     const wishlistResult = await pool.query('SELECT * FROM wishlist ORDER BY group_num, position, CASE priority WHEN \'high\' THEN 1 WHEN \'medium\' THEN 2 WHEN \'low\' THEN 3 END');
+    const recruitsResult = await pool.query('SELECT * FROM recruits ORDER BY recruited_at DESC');
 
     const roster = rosterResult.rows.map(row => ({
       id: row.id,
@@ -161,6 +173,14 @@ app.get('/api/data', async (req, res) => {
       position: row.position || 0
     }));
 
+    const recruits = recruitsResult.rows.map(row => ({
+      id: row.id,
+      name: row.name,
+      spec: row.spec,
+      notes: row.notes,
+      recruitedAt: row.recruited_at
+    }));
+
     // Get the latest modification timestamp
     const rosterMax = await pool.query('SELECT MAX(updated_at) as max_ts FROM roster');
     const wishlistMax = await pool.query('SELECT MAX(updated_at) as max_ts FROM wishlist');
@@ -172,8 +192,8 @@ app.get('/api/data', async (req, res) => {
     const configResult = await pool.query("SELECT value FROM config WHERE key = 'specUtilityConfig'");
     const specUtilityConfig = configResult.rows[0]?.value || {};
 
-    console.log('Returning roster:', roster.length, 'wishlist:', wishlist.length, 'lastModified:', lastModified);
-    res.json({ roster, wishlist, lastModified, specUtilityConfig });
+    console.log('Returning roster:', roster.length, 'wishlist:', wishlist.length, 'recruits:', recruits.length, 'lastModified:', lastModified);
+    res.json({ roster, wishlist, recruits, lastModified, specUtilityConfig });
   } catch (err) {
     console.error('GET ERROR:', err.stack || err);
     res.status(500).json({ error: 'Failed to read data' });
@@ -185,9 +205,10 @@ app.put('/api/data', async (req, res) => {
   console.log('PUT /api/data', { roster: req.body.roster?.length, wishlist: req.body.wishlist?.length, knownVersion: req.body.knownVersion });
   const client = await pool.connect();
   try {
-    const { roster, wishlist, knownVersion, specUtilityConfig } = req.body;
+    const { roster, wishlist, recruits, knownVersion, specUtilityConfig } = req.body;
     const hasRoster = Array.isArray(roster);
     const hasWishlist = Array.isArray(wishlist);
+    const hasRecruits = Array.isArray(recruits);
     const allowEmpty = req.query.allowEmpty === 'true';
 
     // Save spec utility config if provided
@@ -198,8 +219,8 @@ app.put('/api/data', async (req, res) => {
       );
     }
 
-    if (!hasRoster && !hasWishlist) {
-      return res.status(400).json({ error: 'Payload must include roster and/or wishlist arrays' });
+    if (!hasRoster && !hasWishlist && !hasRecruits) {
+      return res.status(400).json({ error: 'Payload must include roster and/or wishlist and/or recruits arrays' });
     }
 
     if (hasRoster && hasWishlist && roster.length === 0 && wishlist.length === 0 && !allowEmpty) {
@@ -301,6 +322,28 @@ app.put('/api/data', async (req, res) => {
         await client.query('DELETE FROM wishlist WHERE id <> ALL($1::text[])', [wishlistIds]);
       } else if (allowEmpty) {
         await client.query('DELETE FROM wishlist');
+      }
+    }
+
+    if (hasRecruits) {
+      for (const r of recruits) {
+        await client.query(
+          `INSERT INTO recruits (id, name, spec, notes, recruited_at)
+           VALUES ($1, $2, $3, $4, NOW())
+           ON CONFLICT (id) DO UPDATE SET
+             name = EXCLUDED.name,
+             spec = EXCLUDED.spec,
+             notes = EXCLUDED.notes,
+             recruited_at = NOW()`,
+          [r.id, r.name, r.spec, r.notes || null]
+        );
+      }
+
+      const recruitIds = recruits.map(r => r.id);
+      if (recruitIds.length > 0) {
+        await client.query('DELETE FROM recruits WHERE id <> ALL($1::text[])', [recruitIds]);
+      } else if (allowEmpty) {
+        await client.query('DELETE FROM recruits');
       }
     }
 
