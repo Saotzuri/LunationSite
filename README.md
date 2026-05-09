@@ -1,16 +1,58 @@
-# React + Vite
+# Lunation Guild Roster
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Ein Roster-Management-Tool für WoW-Gilden mit Drag-and-Drop, Wunsch-Roster und Rekrutierungs-Tracking.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Roster-Verwaltung**: Spieler mit Name, Spec, Role und Notes verwalten
+- **Drag-and-Drop**: Spieler per Drag & Drop in Gruppen verschieben
+- **Wunsch-Roster**: Offene Stellen als Wunsch-Specs eintragen
+- **Rekrutierte Spieler**: Tracking wer rekrutiert wurde
+- **Officer-Login**: Geschützter Bereich für Officers zum Bearbeiten
+- **Utility-Übersicht**: Buffs und Utility der Raid-Composition anzeigen
 
-## React Compiler
+## Tech Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- React 19 + Vite
+- Express Backend mit PostgreSQL
+- @dnd-kit für Drag & Drop
+- React Router für Navigation
 
-## Expanding the ESLint configuration
+## Setup
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```bash
+# Dependencies installieren
+npm install
+
+# Development Server starten
+npm run dev
+
+# Production build
+npm run build
+
+# Server starten (nach build)
+npm start
+```
+
+## Umgebungsvariablen
+
+```env
+VITE_OFFICER_PASSWORD=dein_passwort
+DATABASE_URL=postgresql://...
+```
+
+## Struktur
+
+```
+src/
+  components/     # Wiederverwendbare UI-Komponenten
+  pages/          # Seiten-Komponenten
+  utils/          # Helper-Funktionen (auth, classColors)
+  App.jsx         # Hauptkomponente
+  index.css       # Styles
+server.js         # Express Backend
+```
+
+## Deployment
+
+Das Backend erwartet eine PostgreSQL-Datenbank und stellt die API unter `/api/data` bereit. Die statischen Dateien werden aus dem `dist/`-Ordner serviert.
