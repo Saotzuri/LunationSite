@@ -326,24 +326,15 @@ app.put('/api/data', async (req, res) => {
     }
 
     if (hasRecruits) {
+      // First delete all recruits, then re-insert remaining ones
+      await client.query('DELETE FROM recruits');
+
       for (const r of recruits) {
         await client.query(
           `INSERT INTO recruits (id, name, spec, notes, recruited_at)
-           VALUES ($1, $2, $3, $4, NOW())
-           ON CONFLICT (id) DO UPDATE SET
-             name = EXCLUDED.name,
-             spec = EXCLUDED.spec,
-             notes = EXCLUDED.notes,
-             recruited_at = NOW()`,
-          [r.id, r.name, r.spec, r.notes || null]
+           VALUES ($1, $2, $3, $4, $5)`,
+          [r.id, r.name, r.spec, r.notes || null, r.recruitedAt || new Date().toISOString()]
         );
-      }
-
-      const recruitIds = recruits.map(r => r.id);
-      if (recruitIds.length > 0) {
-        await client.query('DELETE FROM recruits WHERE id <> ALL($1::text[])', [recruitIds]);
-      } else if (allowEmpty) {
-        await client.query('DELETE FROM recruits');
       }
     }
 
