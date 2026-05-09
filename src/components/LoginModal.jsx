@@ -7,7 +7,9 @@ export default function LoginModal({ onClose }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    console.log('Login attempt with password:', password);
     if (login(password)) {
+      console.log('Login successful, localStorage:', localStorage.getItem('lunation_officer'));
       onClose();
     } else {
       setError('Incorrect password');
