@@ -1,9 +1,8 @@
 import { Link, useLocation } from 'react-router-dom';
-import { isOfficer, logout } from '../utils/auth';
+import { logout } from '../utils/auth';
 
-export default function Navbar({ onLoginClick }) {
+export default function Navbar({ onLoginClick, isOfficer }) {
   const location = useLocation();
-  const officer = isOfficer();
 
   const handleLogout = () => {
     logout();

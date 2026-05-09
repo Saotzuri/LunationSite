@@ -1,10 +1,7 @@
 import { useState } from 'react';
-import { isOfficer } from '../utils/auth';
 import RecruitmentTracker from '../components/RecruitmentTracker';
 
-export default function RecruitsPage({ recruits, setRecruits }) {
-  const officer = isOfficer();
-
+export default function RecruitsPage({ recruits, setRecruits, isOfficer }) {
   return (
     <div>
       <div className="page-header">
@@ -12,7 +9,7 @@ export default function RecruitsPage({ recruits, setRecruits }) {
         <p className="page-subtitle">Übersicht der rekrutierten Spieler</p>
       </div>
 
-      <RecruitmentTracker recruits={recruits} setRecruits={setRecruits} />
+      <RecruitmentTracker recruits={recruits} setRecruits={setRecruits} isOfficer={isOfficer} />
     </div>
   );
 }

@@ -19,9 +19,22 @@ function App() {
   const [wishlist, setWishlist] = useState([]);
   const [recruits, setRecruits] = useState([]);
   const [specUtilityConfig, setSpecUtilityConfig] = useState({});
+  const [isOfficerState, setIsOfficerState] = useState(() => {
+    return localStorage.getItem('lunation_officer') === 'true';
+  });
   const lastKnownVersion = useRef(null);
 
-  console.log('App state - roster:', roster?.length, 'wishlist:', wishlist?.length);
+  console.log('App state - roster:', roster?.length, 'wishlist:', wishlist?.length, 'isOfficer:', isOfficerState);
+
+  // Sync officer state with localStorage
+  useEffect(() => {
+    const checkOfficer = () => {
+      setIsOfficerState(localStorage.getItem('lunation_officer') === 'true');
+    };
+    checkOfficer();
+    window.addEventListener('storage', checkOfficer);
+    return () => window.removeEventListener('storage', checkOfficer);
+  }, []);
 
   // Load data from server
   useEffect(() => {
@@ -166,7 +179,7 @@ function App() {
 
   return (
     <BrowserRouter>
-      <Navbar onLoginClick={() => setShowLogin(true)} />
+      <Navbar isOfficer={isOfficerState} onLoginClick={() => setShowLogin(true)} />
       {conflictError && (
         <div className="conflict-alert">
           {conflictError}
@@ -184,7 +197,7 @@ function App() {
           />
           <Route
             path="/recruits"
-            element={<RecruitsPage recruits={recruits} setRecruits={handleSetRecruits} />}
+            element={<RecruitsPage recruits={recruits} setRecruits={handleSetRecruits} isOfficer={isOfficerState} />}
           />
         </Routes>
       </main>

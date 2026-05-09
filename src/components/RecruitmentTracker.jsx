@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
-import { isOfficer } from '../utils/auth';
 import { getClassColor } from '../utils/classColors';
 
-export default function RecruitmentTracker({ recruits, setRecruits }) {
-  const officer = isOfficer();
+export default function RecruitmentTracker({ recruits, setRecruits, isOfficer: officerProp }) {
+  const officer = officerProp;
   const [showForm, setShowForm] = useState(false);
   const [editingRecruit, setEditingRecruit] = useState(null);
 
