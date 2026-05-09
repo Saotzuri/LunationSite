@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { isOfficer } from '../utils/auth';
 import { getClassColor } from '../utils/classColors';
 
@@ -103,10 +103,18 @@ export default function RecruitmentTracker({ recruits, setRecruits }) {
 
 function RecruitForm({ recruit, onSave, onCancel }) {
   const [formData, setFormData] = useState({
-    name: recruit?.name || '',
-    spec: recruit?.spec || '',
-    notes: recruit?.notes || ''
+    name: '',
+    spec: '',
+    notes: ''
   });
+
+  useEffect(() => {
+    setFormData({
+      name: recruit?.name || '',
+      spec: recruit?.spec || '',
+      notes: recruit?.notes || ''
+    });
+  }, [recruit]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;

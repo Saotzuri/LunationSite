@@ -4,15 +4,13 @@ import RaidComposition from '../components/RaidComposition';
 import RaidUtilityOverview from '../components/RaidUtilityOverview';
 import SpecUtilityConfig from '../components/SpecUtilityConfig';
 import WishlistGroups from '../components/WishlistGroups';
-import RecruitmentTracker from '../components/RecruitmentTracker';
 import MemberForm from '../components/MemberForm';
 
-export default function WishlistPage({ roster, wishlist, setWishlist, recruits, setRecruits, specUtilityConfig, updateSpecUtilityConfig }) {
+export default function WishlistPage({ roster, wishlist, setWishlist, specUtilityConfig, updateSpecUtilityConfig }) {
   const [showForm, setShowForm] = useState(false);
   const [editingEntry, setEditingEntry] = useState(null);
   const [addToGroup, setAddToGroup] = useState(null);
   const [showConfig, setShowConfig] = useState(false);
-  const [activeTab, setActiveTab] = useState('wishlist');
   const officer = isOfficer();
   const mirroredRosterEntries = roster.map(member => ({
     id: `mirror-${member.id}`,
@@ -84,66 +82,43 @@ export default function WishlistPage({ roster, wishlist, setWishlist, recruits, 
         <p className="page-subtitle">Wunsch-Specs für unseren Raid-Roster</p>
       </div>
 
-      <div className="tabs">
-        <button
-          className={`tab ${activeTab === 'wishlist' ? 'active' : ''}`}
-          onClick={() => setActiveTab('wishlist')}
-        >
-          Wunsch-Roster
+      <RaidComposition roster={combinedEntries} />
+      <RaidUtilityOverview entries={combinedEntries} title="Wunsch-Roster Buffs & Utility" specUtilityConfig={specUtilityConfig} />
+      {officer && (
+        <button className="btn btn-secondary" onClick={() => setShowConfig(true)} style={{ marginTop: '1rem' }}>
+          Configure Spec Utility
         </button>
-        <button
-          className={`tab ${activeTab === 'recruits' ? 'active' : ''}`}
-          onClick={() => setActiveTab('recruits')}
-        >
-          Rekrutierte
-        </button>
-      </div>
+      )}
 
-      {activeTab === 'wishlist' && (
-        <>
-          <RaidComposition roster={combinedEntries} />
-          <RaidUtilityOverview entries={combinedEntries} title="Wunsch-Roster Buffs & Utility" specUtilityConfig={specUtilityConfig} />
+      <div className="roster-section">
+        <div className="section-header">
+          <h2 className="section-title">
+            Wunsch-Roster Gruppen
+            <span className="section-count">{combinedEntries.length}</span>
+          </h2>
           {officer && (
-            <button className="btn btn-secondary" onClick={() => setShowConfig(true)} style={{ marginTop: '1rem' }}>
-              Configure Spec Utility
+            <button className="add-btn" onClick={handleAddEntry}>
+              + Add Wunsch-Spec
             </button>
           )}
+        </div>
 
-          <div className="roster-section">
-            <div className="section-header">
-              <h2 className="section-title">
-                Wunsch-Roster Gruppen
-                <span className="section-count">{combinedEntries.length}</span>
-              </h2>
-              {officer && (
-                <button className="add-btn" onClick={handleAddEntry}>
-                  + Add Wunsch-Spec
-                </button>
-              )}
-            </div>
-
-            {combinedEntries.length === 0 ? (
-              <div className="empty-state">
-                <div className="empty-state-icon">📋</div>
-                <p>No open positions in wishlist.</p>
-              </div>
-            ) : (
-              <WishlistGroups
-                entries={combinedEntries}
-                wishlist={wishlist}
-                setWishlist={setWishlist}
-                onEditEntry={handleEditEntry}
-                onDeleteEntry={handleDeleteEntry}
-                onAddEntry={handleAddEntry}
-              />
-            )}
+        {combinedEntries.length === 0 ? (
+          <div className="empty-state">
+            <div className="empty-state-icon">📋</div>
+            <p>No open positions in wishlist.</p>
           </div>
-        </>
-      )}
-
-      {activeTab === 'recruits' && (
-        <RecruitmentTracker recruits={recruits} setRecruits={setRecruits} />
-      )}
+        ) : (
+          <WishlistGroups
+            entries={combinedEntries}
+            wishlist={wishlist}
+            setWishlist={setWishlist}
+            onEditEntry={handleEditEntry}
+            onDeleteEntry={handleDeleteEntry}
+            onAddEntry={handleAddEntry}
+          />
+        )}
+      </div>
 
       {showForm && (
         <MemberForm

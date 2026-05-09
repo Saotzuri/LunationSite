@@ -27,6 +27,12 @@ export default function Navbar({ onLoginClick }) {
           >
             Wunsch Roster
           </Link>
+          <Link
+            to="/recruits"
+            className={`nav-link ${location.pathname === '/recruits' ? 'active' : ''}`}
+          >
+            Rekrutierte
+          </Link>
           {officer ? (
             <button className="login-btn" onClick={handleLogout}>
               Logout

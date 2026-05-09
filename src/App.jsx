@@ -4,6 +4,7 @@ import Navbar from './components/Navbar';
 import LoginModal from './components/LoginModal';
 import RosterPage from './pages/RosterPage';
 import WishlistPage from './pages/WishlistPage';
+import RecruitsPage from './pages/RecruitsPage';
 import './index.css';
 
 const API_URL = '';
@@ -179,7 +180,11 @@ function App() {
           />
           <Route
             path="/wishlist"
-            element={<WishlistPage roster={roster} wishlist={wishlist} setWishlist={handleSetWishlist} recruits={recruits} setRecruits={handleSetRecruits} specUtilityConfig={specUtilityConfig} updateSpecUtilityConfig={updateSpecUtilityConfig} />}
+            element={<WishlistPage roster={roster} wishlist={wishlist} setWishlist={handleSetWishlist} specUtilityConfig={specUtilityConfig} updateSpecUtilityConfig={updateSpecUtilityConfig} />}
+          />
+          <Route
+            path="/recruits"
+            element={<RecruitsPage recruits={recruits} setRecruits={handleSetRecruits} />}
           />
         </Routes>
       </main>
