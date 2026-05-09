@@ -32,7 +32,7 @@ export default function Navbar({ onLoginClick, isOfficer }) {
           >
             Rekrutierte
           </Link>
-          {officer ? (
+          {isOfficer ? (
             <button className="login-btn" onClick={handleLogout}>
               Logout
             </button>
