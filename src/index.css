@@ -884,7 +884,6 @@ main {
 }
 
 .recruit-card {
-  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -895,16 +894,11 @@ main {
   gap: 1rem;
 }
 
-.recruit-card:hover .member-actions,
-.recruit-card .member-actions {
-  opacity: 1;
-}
-
 .recruit-info {
   display: flex;
   align-items: center;
   gap: 1rem;
-  min-width: 200px;
+  min-width: 180px;
 }
 
 .recruit-name {
@@ -922,6 +916,7 @@ main {
   align-items: center;
   gap: 1rem;
   flex: 1;
+  justify-content: flex-end;
 }
 
 .recruit-notes {
@@ -934,6 +929,12 @@ main {
   color: var(--text-secondary);
   font-size: 0.85rem;
   white-space: nowrap;
+}
+
+.recruit-card .member-actions {
+  opacity: 1;
+  position: static;
+  flex-shrink: 0;
 }
 
 /* Responsive */
