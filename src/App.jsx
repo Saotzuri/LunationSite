@@ -153,6 +153,12 @@ function App() {
     }
   }, []);
 
+  // Immediate save for recruits (used by delete to ensure persistence)
+  const handleRecruitsDataChange = useCallback((newRecruits) => {
+    setRecruits(newRecruits);
+    saveData(roster, wishlist, newRecruits);
+  }, [roster, wishlist, saveData]);
+
   // Save only after successful initial load to prevent accidental wipes on load errors
   useEffect(() => {
     if (!loading && hasLoadedFromServer && !loadError) {
@@ -201,7 +207,7 @@ function App() {
           />
           <Route
             path="/recruits"
-            element={<RecruitsPage recruits={recruits} setRecruits={handleSetRecruits} isOfficer={isOfficerState} />}
+            element={<RecruitsPage recruits={recruits} setRecruits={handleSetRecruits} isOfficer={isOfficerState} onDataChange={handleRecruitsDataChange} />}
           />
         </Routes>
       </main>

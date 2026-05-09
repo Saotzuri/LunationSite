@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getClassColor } from '../utils/classColors';
 
-export default function RecruitmentTracker({ recruits, setRecruits, isOfficer: officerProp }) {
+export default function RecruitmentTracker({ recruits, setRecruits, isOfficer: officerProp, onDataChange }) {
   const [officer, setOfficer] = useState(() => localStorage.getItem('lunation_officer') === 'true');
 
   useEffect(() => {
@@ -34,7 +34,13 @@ export default function RecruitmentTracker({ recruits, setRecruits, isOfficer: o
 
   const handleDelete = (id) => {
     if (window.confirm('Remove this recruit from the list?')) {
-      setRecruits(prev => prev.filter(r => r.id !== id));
+      setRecruits(prev => {
+        const updatedRecruits = prev.filter(r => r.id !== id);
+        if (onDataChange) {
+          onDataChange(updatedRecruits);
+        }
+        return updatedRecruits;
+      });
     }
   };
 

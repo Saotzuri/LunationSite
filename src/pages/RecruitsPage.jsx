@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import RecruitmentTracker from '../components/RecruitmentTracker';
 
-export default function RecruitsPage({ recruits, setRecruits, isOfficer }) {
+export default function RecruitsPage({ recruits, setRecruits, isOfficer, onDataChange }) {
   return (
     <div>
       <div className="page-header">
@@ -9,7 +9,7 @@ export default function RecruitsPage({ recruits, setRecruits, isOfficer }) {
         <p className="page-subtitle">Übersicht der rekrutierten Spieler</p>
       </div>
 
-      <RecruitmentTracker recruits={recruits} setRecruits={setRecruits} isOfficer={isOfficer} />
+      <RecruitmentTracker recruits={recruits} setRecruits={setRecruits} isOfficer={isOfficer} onDataChange={onDataChange} />
     </div>
   );
 }
