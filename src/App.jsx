@@ -33,7 +33,11 @@ function App() {
     };
     checkOfficer();
     window.addEventListener('storage', checkOfficer);
-    return () => window.removeEventListener('storage', checkOfficer);
+    window.addEventListener('lunation-login', checkOfficer);
+    return () => {
+      window.removeEventListener('storage', checkOfficer);
+      window.removeEventListener('lunation-login', checkOfficer);
+    };
   }, []);
 
   // Load data from server

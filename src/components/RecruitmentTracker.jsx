@@ -5,20 +5,20 @@ export default function RecruitmentTracker({ recruits, setRecruits, isOfficer: o
   const [officer, setOfficer] = useState(() => localStorage.getItem('lunation_officer') === 'true');
 
   useEffect(() => {
-    const handleStorage = () => {
+    const checkOfficer = () => {
       setOfficer(localStorage.getItem('lunation_officer') === 'true');
     };
-    window.addEventListener('storage', handleStorage);
-    const interval = setInterval(() => {
-      setOfficer(localStorage.getItem('lunation_officer') === 'true');
-    }, 1000);
+    checkOfficer();
+    window.addEventListener('storage', checkOfficer);
+    window.addEventListener('lunation-login', checkOfficer);
+    const interval = setInterval(checkOfficer, 1000);
     return () => {
-      window.removeEventListener('storage', handleStorage);
+      window.removeEventListener('storage', checkOfficer);
+      window.removeEventListener('lunation-login', checkOfficer);
       clearInterval(interval);
     };
   }, []);
 
-  console.log('RecruitmentTracker officer:', officer);
   const [showForm, setShowForm] = useState(false);
   const [editingRecruit, setEditingRecruit] = useState(null);
 

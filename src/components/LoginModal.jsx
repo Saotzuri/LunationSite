@@ -7,9 +7,9 @@ export default function LoginModal({ onClose }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Login attempt with password:', password);
     if (login(password)) {
-      console.log('Login successful, localStorage:', localStorage.getItem('lunation_officer'));
+      // Trigger custom event for other components to update
+      window.dispatchEvent(new Event('lunation-login'));
       onClose();
     } else {
       setError('Incorrect password');

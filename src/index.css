@@ -884,6 +884,7 @@ main {
 }
 
 .recruit-card {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -892,6 +893,11 @@ main {
   border-radius: 8px;
   padding: 1rem;
   gap: 1rem;
+}
+
+.recruit-card:hover .member-actions,
+.recruit-card .member-actions {
+  opacity: 1;
 }
 
 .recruit-info {
